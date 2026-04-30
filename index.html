@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <title>Hravá matika - tabule s křídou</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #fdf7e9;
+      --card: #ffffff;
+      --accent: #ff9800;
+      --accent-soft: #ffe0b2;
+      --good: #2e7d32;
+      --bad: #c62828;
+      --text: #222;
+    }
+
+    body.mode-teacher {
+      --bg: #f5f7ff;
+      --card: #ffffff;
+      --accent: #7e57c2;
+      --accent-soft: #e8ddff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 10px;
+      background: var(--bg);
+      font-family: system-ui, sans-serif;
+      color: var(--text);
+    }
+
+    h1 {
+      font-size: 22px;
+      margin: 10px 0 4px;
+      text-align: center;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 10px;
+    }
+
+    .layout {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    @media (min-width: 800px) {
+      .layout {
+        flex-direction: row;
+        align-items: flex-start;
+      }
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 10px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .canvas-card {
+      flex: 2;
+    }
+
+    .info-card {
+      flex: 1;
+    }
+
+    .task-label {
+      font-size: 16px;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+
+    #task {
+      font-size: 22px;
+      font-weight: 700;
+      text-align: center;
+      margin: 2px 0 8px;
+    }
+
+    .board-label {
+      text-align: center;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .board-wrapper {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* ČISTÁ ČERNÁ TABULE - bez textur, bez efektů */
+    #board {
+      background: #000000;
+      border: 2px solid #333;
+      max-width: 480px;
+      width: 100%;
+      height: auto;
+      display: block;
+      touch-action: none;
+      cursor: url("krida.svg") 20 8, crosshair;
+    }
+
+    /* Mobilní falešný kurzor */
+    #chalk-cursor {
+      position: fixed;
+      width: 28px;
+      height: 28px;
+      pointer-events: none;
+      background: url("krida.svg") center/contain no-repeat;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      transition: opacity 80ms;
+      z-index: 999;
+    }
+
+    .buttons-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    button {
+      border-radius: 999px;
+      border: none;
+      padding: 8px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    button.danger {
+      background: #ffebee;
+      color: var(--bad);
+    }
+
+    button.good {
+      background: #e3f7e5;
+      color: var(--good);
+    }
+
+    #output {
+      font-size: 16px;
+      margin-top: 6px;
+      text-align: center;
+      min-height: 24px;
+    }
+
+    .ok {
+      color: var(--good);
+      font-weight: 700;
+    }
+
+    .bad {
+      color: var(--bad);
+      font-weight: 700;
+    }
+
+    .teacher-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .teacher-bubble {
+      margin-top: 6px;
+      font-size: 14px;
+      background: #fff9e6;
+      border-radius: 12px;
+      padding: 8px 10px;
+      min-height: 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    body.mode-teacher .teacher-bubble {
+      background: #f3ecff;
+    }
+
+    .teacher-bubble::before {
+      content: "🐻";
+      position: absolute;
+      left: 8px;
+      top: 6px;
+    }
+
+    .teacher-text {
+      margin-left: 26px;
+      font-size: 14px;
+      white-space: pre-wrap;
+    }
+
+    .stats {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+      font-size: 13px;
+    }
+
+    .stat-pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #f0f2f8;
+    }
+
+    .tips {
+      margin-top: 10px;
+      font-size: 13px;
+      background: #e8f5e9;
+      border-radius: 10px;
+      padding: 8px;
+    }
+
+    .tips ul {
+      margin: 4px 0 0 18px;
+      padding: 0;
+    }
+
+    .typewriter {
+      white-space: pre-wrap;
+    }
+
+    body.mode-teacher .story-box {
+      background: #f3ecff;
+    }
+#taskContainer {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.ukazka-btn {
+  background: linear-gradient(135deg, #ffb300, #ff6f00);
+  color: white;
+  font-size: 22px;
+  font-weight: bold;
+  padding: 14px 28px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #b85a00;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  margin: 15px auto;
+  display: inline-block;
+}
+
+.ukazka-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 0 #b85a00;
+}
+
+.ukazka-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #b85a00;
+}
+
+  </style>
+</head>
+<body>
+  <h1>Hravá matika pro předškoláky</h1>
+  <div class="subtitle">
+    Podívej se na příklad, napiš výsledek křídou na tabuli a učitel ti poradí.
+  </div>
+
+  <div class="layout">
+    <div class="card canvas-card">
+      <div class="task-label">Příklad</div>
+      <p id="task"></p>
+<div id="taskContainer">
+  <div id="taskEl"></div>
+
+  <button class="ukazka-btn" onclick="window.location.href='ukazka.html'">
+    🎬 Ukázka animace
+  </button>
+</div>      <div class="board-label">Tabule</div>
+      <div class="board-wrapper">
+        <canvas id="board"></canvas>
+      </div>
+
+      <div class="buttons-row">
+        <button id="clear" class="danger">🧹 Vymazat tabuli</button>
+        <button id="read" class="primary">🔍 Vyhodnotit</button>
+        <button id="generate" class="good">✨ Nový příklad</button>
+      </div>
+
+      <p id="output" class="typewriter"></p>
+    </div>
+
+    <div class="card info-card">
+      <div class="teacher-toggle">
+        <input type="checkbox" id="teacherMode" />
+        <label for="teacherMode">Učitelský režim (pastelový, vysvětlující)</label>
+      </div>
+
+      <div class="teacher-bubble">
+        <div id="teacherText" class="teacher-text typewriter">
+          Ahoj! Podívej se na příklad nahoře a napiš výsledek na tabuli.
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat-pill">
+          ✅ Správně: <span id="statCorrect">0</span>
+        </div>
+        <div class="stat-pill">
+          ❌ Špatně: <span id="statWrong">0</span>
+        </div>
+        <div class="stat-pill">
+          🔁 Série: <span id="statStreak">0</span>
+        </div>
+      </div>
+
+      <div class="tips">
+        <b>Jak kreslit čísla jednoduše:</b>
+        <ul>
+          <li>Piš čísla doprostřed tabule a větší.</li>
+          <li>8 = dvě kuličky nad sebou.</li>
+          <li>9 = kulička a malý ocásek dolů.</li>
+          <li>-1 = dlouhá čárka a pak jednička.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="chalk-cursor"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script>
+	window.onload = () => {
+  		generateTask();
+	};   
+ const canvas = document.getElementById("board");
+    const ctx = canvas.getContext("2d");
+    const teacherModeCheckbox = document.getElementById("teacherMode");
+    const teacherTextEl = document.getElementById("teacherText");
+    const outputEl = document.getElementById("output");
+    const taskEl = document.getElementById("task");
+    const chalkCursor = document.getElementById("chalk-cursor");
+
+    let drawing = false;
+    let currentTask = "";
+    let correctCount = 0;
+    let wrongCount = 0;
+    let streak = 0;
+
+    // jednotný typewriter pro všechny generované texty
+    function typeWriter(text, el, speed = 35) {
+      if (!el) return;
+      el.textContent = "";
+      let i = 0;
+      const id = setInterval(() => {
+        el.textContent += text.charAt(i);
+        i++;
+        if (i >= text.length) clearInterval(id);
+      }, speed);
+    }
+
+    function tw(el, text, speed = 35) {
+      typeWriter(text, el, speed);
+    }
+
+    // UČITEL - rozšiřitelná struktura
+    const teacherConfig = {
+      name: "medvěd",
+      emoji: "🐻",
+      messages: {
+        new: [
+          "Zkus spočítat příklad a napiš výsledek na tabuli.",
+          "Podívej, tady je nový příklad. Co z něj vyjde?",
+          "Nejprve si ho v hlavě představ a pak napiš číslo.",
+          "Můžeš si představit kuličky nebo bonbóny a spočítat je."
+        ],
+        clear: [
+          "Tabule je čistá, připravená na nové číslo.",
+          "Super, máme prázdnou tabuli. Co tam napíšeme teď?",
+          "Vymazáno! Teď můžeš zkusit číslo nakreslit znovu."
+        ],
+        correct: [
+          "Jupí! To se povedlo!",
+          "Paráda, trefa přesně!",
+          "Tohle je krásně spočítané, jen tak dál.",
+          "Vidíš? Umíš to skvěle!"
+        ],
+        wrong: [
+          "Tohle úplně nesedí, zkus to ještě jednou.",
+          "Skoro! Podívej se na příklad ještě jednou.",
+          "Nezoufej, někdy se to nepovede. Zkus to znovu.",
+          "Zkus si představit kuličky nebo bonbóny a spočítat je znovu."
+        ],
+        empty: [
+          "Nevidím žádné číslo. Zkus ho napsat větší doprostřed tabule.",
+          "Možná je číslo moc malé nebo slabé. Zkus ho napsat znovu.",
+          "Zkus udělat číslo větší a silnější, ať ho dobře vidím."
+        ],
+        parseError: [
+          "Vidím nějaké čáry, ale nerozumím tomu jako číslu.",
+          "Zkus napsat jen jedno číslo, bez písmenek.",
+          "Možná je tam moc čar. Zkus to jednodušeji."
+        ]
+      }
+    };
+
+    function setTeacherMessageRandom(type) {
+      if (!teacherModeCheckbox.checked) return;
+      const msgs = teacherConfig.messages[type];
+      if (!msgs || !msgs.length) return;
+      const text = randomFrom(msgs);
+      tw(teacherTextEl, text);
+    }
+
+    teacherModeCheckbox.addEventListener("change", () => {
+      if (teacherModeCheckbox.checked) {
+        document.body.classList.add("mode-teacher");
+        tw(
+          teacherTextEl,
+          "Teď si budeme víc povídat a vysvětlovat."
+        );
+      } else {
+        document.body.classList.remove("mode-teacher");
+        tw(
+          teacherTextEl,
+          "Teď jen počítáme a kontrolujeme jako ve školce."
+        );
+      }
+    });
+
+    // CANVAS - čistá černá tabule
+    function initCanvasSize() {
+      const isMobile = window.innerWidth <= 600;
+      if (isMobile) {
+        canvas.width = 720;
+        canvas.height = 300;
+      } else {
+        canvas.width = 900;
+        canvas.height = 400;
+      }
+      ctx.lineWidth = 22;
+      ctx.lineCap = "round";
+      ctx.strokeStyle = "#ffffff";
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    initCanvasSize();
+
+    function pos(e) {
+      const r = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return {
+        x: (clientX - r.left) * (canvas.width / r.width),
+        y: (clientY - r.top) * (canvas.height / r.height)
+      };
+    }
+
+    function start(e) {
+      drawing = true;
+      const p = pos(e);
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+    }
+
+    function move(e) {
+      if (!drawing) return;
+      const p = pos(e);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+    }
+
+    function end() {
+      drawing = false;
+      ctx.beginPath();
+    }
+
+    // PC
+    canvas.addEventListener("mousedown", start);
+    canvas.addEventListener("mousemove", move);
+    canvas.addEventListener("mouseup", end);
+    canvas.addEventListener("mouseleave", end);
+
+    // MOBIL - falešný kurzor
+    canvas.addEventListener(
+      "touchstart",
+      (e) => {
+        e.preventDefault();
+        const t = e.touches[0];
+        chalkCursor.style.left = t.clientX + "px";
+        chalkCursor.style.top = t.clientY + "px";
+        chalkCursor.style.opacity = "1";
+        start(e);
+      },
+      { passive: false }
+    );
+
+    canvas.addEventListener(
+      "touchmove",
+      (e) => {
+        e.preventDefault();
+        const t = e.touches[0];
+        chalkCursor.style.left = t.clientX + "px";
+        chalkCursor.style.top = t.clientY + "px";
+        move(e);
+      },
+      { passive: false }
+    );
+
+    canvas.addEventListener(
+      "touchend",
+      (e) => {
+        chalkCursor.style.opacity = "0";
+        end(e);
+      },
+      { passive: false }
+    );
+
+    // CLEAR
+    document.getElementById("clear").onclick = () => {
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.beginPath();
+      outputEl.textContent = "";
+      setTeacherMessageRandom("clear");
+    };
+
+    // STATISTIKY
+    function updateStats() {
+      document.getElementById("statCorrect").textContent = correctCount;
+      document.getElementById("statWrong").textContent = wrongCount;
+      document.getElementById("statStreak").textContent = streak;
+    }
+
+    // PŘÍKLADY
+    function generateTask() {
+      const a = Math.floor(Math.random() * 10);
+      const b = Math.floor(Math.random() * 10);
+      const ops = ["+", "-", "*"];
+      const op = ops[Math.floor(Math.random() * ops.length)];
+     // ULOŽENÍ PRO UKÁZKU
+  	localStorage.setItem("exA", a);
+  	localStorage.setItem("exB", b);
+  	localStorage.setItem("exOp", op); 
+
+      currentTask = `${a} ${op} ${b}`;
+      taskEl.textContent = currentTask + " = ?";
+      outputEl.textContent = "";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.beginPath();
+      setTeacherMessageRandom("new");
+    }
+
+    document.getElementById("generate").onclick = generateTask;
+
+    // OCR
+    document.getElementById("read").onclick = async () => {
+      tw(outputEl, "Čtu ...");
+
+      // vytvoříme rozmazanou kopii pro OCR (připravené, kdybys chtěl použít)
+      function getBlurredForOCR() {
+        const tmp = document.createElement("canvas");
+        tmp.width = canvas.width;
+        tmp.height = canvas.height;
+        const tctx = tmp.getContext("2d");
+        tctx.drawImage(canvas, 0, 0);
+        tctx.filter = "blur(2px)";
+        tctx.drawImage(tmp, 0, 0);
+        return tmp;
+      }
+
+      const blurred = getBlurredForOCR();
+
+      const {
+        data: { text }
+      } = await Tesseract.recognize(canvas, "eng", {
+        tessedit_char_whitelist: "0123456789-"
+      });
+
+      let cleaned = text
+        .replace(/\s+/g, "")
+        .replace(/[^0-9A-Za-z\-]/g, "");
+
+      const map = {
+        O: "0",
+        o: "0",
+        Q: "0",
+        D: "0",
+        I: "1",
+        l: "1",
+        "|": "1",
+        "/": "1",
+        Z: "2",
+        z: "2",
+        E: "3",
+        e: "3",
+        A: "4",
+        a: "4",
+        t: "4",
+        T: "4",
+        d: "4",
+        f: "4",
+        p: "4",
+        P: "4",
+        S: "5",
+        s: "5",
+        b: "6",
+        F: "7",
+        B: "8",
+        g: "9",
+        G: "9",
+        q: "9"
+      };
+
+      let normalized = "";
+      for (let ch of cleaned) {
+        if (ch === "-") {
+          normalized += "-";
+          continue;
+        }
+        normalized += map[ch] ?? ch;
+      }
+
+      if (normalized === "") {
+        tw(outputEl, "Nic nerozpoznáno.", 25);
+        setTeacherMessageRandom("empty");
+        return;
+      }
+
+      outputEl.innerHTML = "";
+      tw(outputEl, "Rozpoznáno: " + normalized, 25);
+
+      const user = parseInt(normalized, 10);
+      const expected = eval(currentTask);
+
+      if (Number.isNaN(user)) {
+        setTimeout(() => {
+          outputEl.innerHTML +=
+            "<br><span class='bad'>Nerozumím výsledku. Zkus napsat jen číslo.</span>";
+        }, 400);
+        setTeacherMessageRandom("parseError");
+        return;
+      }
+
+      if (user === expected) {
+        setTimeout(() => {
+          outputEl.innerHTML +=
+            "<br><span class='ok'>Správně ✔</span>";
+        }, 400);
+        correctCount++;
+        streak++;
+        updateStats();
+        setTeacherMessageRandom("correct");
+      } else {
+        setTimeout(() => {
+          outputEl.innerHTML +=
+            `<br><span class='bad'>Špatně ✖ (správně: ${expected})</span>`;
+        }, 400);
+        wrongCount++;
+        streak = 0;
+        updateStats();
+        setTeacherMessageRandom("wrong");
+      }
+    };
+
+    // START
+    window.addEventListener("load", () => {
+      generateTask();
+    });
+  </script>
+</body>
+</html>

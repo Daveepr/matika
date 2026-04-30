@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<title>Ukázka příkladu</title>
+<style>
+  body {
+    background: #f7f7f7;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 20px;
+  }
+
+  #exampleCanvas {
+    background: white;
+    border: 4px solid #333;
+    border-radius: 12px;
+    margin-top: 20px;
+  }
+
+  button {
+    padding: 10px 20px;
+    font-size: 18px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    background: #4CAF50;
+    color: white;
+  }
+
+  button:hover {
+    background: #45a049;
+  }
+</style>
+</head>
+<body>
+
+<h2>Ukázka příkladu</h2>
+
+<button onclick="window.location.href='index.html'">Zpět</button>
+
+<br><br>
+
+<canvas id="exampleCanvas" width="700" height="250"></canvas>
+
+<script>
+// --------------------------------------------------
+// NAČTENÍ PŘÍKLADU
+// --------------------------------------------------
+const a = Number(localStorage.getItem("exA"));
+const b = Number(localStorage.getItem("exB"));
+const op = localStorage.getItem("exOp");
+
+if (isNaN(a) || isNaN(b) || !op) {
+  alert("Nejdřív vygeneruj příklad v hlavní aplikaci.");
+}
+
+// --------------------------------------------------
+// ZVUKY (děti to milují)
+// --------------------------------------------------
+const sndPop = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-arcade-mechanical-bling-210.wav");
+const sndWrite = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-pencil-writing-623.wav");
+const sndDing = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.wav");
+
+// --------------------------------------------------
+// ANIMÁTOR
+// --------------------------------------------------
+function startExampleAnimation() {
+  const canvas = document.getElementById("exampleCanvas");
+  const ctx = canvas.getContext("2d");
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.font = "40px Arial";
+
+  const symbol = "🚗"; // později napojíme na objekt
+
+  let step = 0;
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    let pos = 40;
+
+    // A symbolů (skákací efekt)
+    for (let i = 0; i < Math.min(step, a); i++) {
+      const bounce = Math.sin((step - i) * 0.5) * 5;
+      ctx.fillText(symbol, pos, 100 + bounce);
+      pos += 60;
+    }
+
+    // operátor (fade-in)
+    if (step > a) {
+      ctx.globalAlpha = Math.min((step - a) * 0.2, 1);
+      ctx.fillText(op, pos, 100);
+      ctx.globalAlpha = 1;
+      pos += 60;
+    }
+
+    // B symbolů (kutálení)
+    if (step > a + 1) {
+      for (let i = 0; i < Math.min(step - (a + 2), b); i++) {
+        const roll = Math.sin((step - i) * 0.3) * 10;
+        ctx.fillText(symbol, pos, 100 + roll);
+        pos += 60;
+      }
+    }
+
+    // =
+    if (step > a + b + 2) {
+      ctx.fillText("=", pos, 100);
+      pos += 60;
+    }
+
+    // výsledek
+    const result =
+      op === "+" ? a + b :
+      op === "-" ? a - b :
+      op === "*" ? a * b : 0;
+
+    // animace psaní výsledku číslicí
+    if (step > a + b + 3) {
+      const digits = String(result).split("");
+      const written = Math.min(step - (a + b + 4), digits.length);
+
+      ctx.font = "50px Arial";
+
+      for (let i = 0; i < written; i++) {
+        ctx.fillText(digits[i], pos + i * 40, 100);
+      }
+
+      // zvuk psaní
+      if (written <= digits.length) sndWrite.play();
+
+      // po dopsání ding
+      if (written === digits.length) sndDing.play();
+    }
+
+    step++;
+
+    // zvuk při každém symbolu
+    if (step <= a + b + result + 5) sndPop.play();
+
+    if (step < a + b + result + 15) {
+      setTimeout(draw, 250);
+    }
+  }
+
+  draw();
+}
+
+startExampleAnimation();
+</script>
+
+</body>
+</html>
