@@ -1,334 +1,272 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-<meta charset="UTF-8">
-<title>Ukázka příkladu</title>
-<style>
-body {
-  background: #222;
-  color: white;
-  font-family: Arial, sans-serif;
-  text-align: center;
-}
-
-#exampleCanvas {
-  background: #000;
-  border: 4px solid #333;
-  border-radius: 12px;
-  margin-top: 20px;
-}
-
-button {
-  background: #4caf50;
-  color: white;
-  padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
-  font-size: 20px;
-  cursor: pointer;
-  margin-top: 20px;
-}
-button:hover {
-  background: #45a049;
-}
-</style>
+  <meta charset="UTF-8" />
+  <title>Ukázka příkladu</title>
+  <style>
+    body {
+      margin: 0;
+      background: #111;
+      color: #fff;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      padding-top: 30px;
+    }
+    h1 {
+      margin-bottom: 10px;
+      font-size: 26px;
+    }
+    #info {
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+    #board {
+      background: #000;
+      border-radius: 8px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.8);
+      display: block;
+    }
+    .btn-row {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+    }
+    button {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .back-btn {
+      background: #2e7d32;
+      color: #fff;
+    }
+    .back-btn:hover {
+      background: #388e3c;
+    }
+  </style>
 </head>
-
 <body>
+  <h1>Ukázka příkladu</h1>
+  <div id="info"></div>
+  <canvas id="board" width="900" height="400"></canvas>
 
-<h1>Ukázka příkladu</h1>
-<button onclick="history.back()">Zpět</button>
+  <div class="btn-row">
+    <button class="back-btn" onclick="window.location.href='index.html'">Zpět</button>
+  </div>
 
-<canvas id="exampleCanvas" width="600" height="300"></canvas>
+  <script>
+    const canvas = document.getElementById("board");
+    const ctx = canvas.getContext("2d");
 
-<script>
-// --------------------------------------------------
-// 1) Načtení příkladu z localStorage
-// --------------------------------------------------
-const a = Number(localStorage.getItem("exA"));
-const b = Number(localStorage.getItem("exB"));
-const op = localStorage.getItem("exOp");
-const result = eval(`${a}${op}${b}`);
+    // základní vzhled "křídy"
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 10;
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-const canvas = document.getElementById("exampleCanvas");
-const ctx = canvas.getContext("2d");
-
-ctx.lineWidth = 4;
-ctx.strokeStyle = "#fff";
-ctx.lineCap = "round";
-
-// --------------------------------------------------
-// 2) Křídový noise efekt
-// --------------------------------------------------
-function chalkNoise(x, y) {
-  if (Math.random() < 0.2) {
-    ctx.fillStyle = "rgba(255,255,255,0.15)";
-    ctx.fillRect(x + (Math.random()*4-2), y + (Math.random()*4-2), 2, 2);
-  }
-}
-
-// --------------------------------------------------
-// 3) Animované kreslení čáry
-// --------------------------------------------------
-function drawPathAnimated(points, offsetX, offsetY, callback) {
-  const steps = points.length - 1;
-  let i = 0;
-
-  function step() {
-    const [x1, y1] = points[i];
-    const [x2, y2] = points[i + 1];
-
-    // drobný jitter, ať to není robot
-    const jx = (Math.random() - 0.5) * 1.2;
-    const jy = (Math.random() - 0.5) * 1.2;
-
-    ctx.beginPath();
-    ctx.moveTo(x1 + offsetX, y1 + offsetY);
-    ctx.lineTo(x2 + offsetX + jx, y2 + offsetY + jy);
-    ctx.stroke();
-
-    // chalk noise
-    if (Math.random() < 0.3) {
-      ctx.fillStyle = "rgba(255,255,255,0.18)";
-      ctx.fillRect(
-        x2 + offsetX + (Math.random() * 4 - 2),
-        y2 + offsetY + (Math.random() * 4 - 2),
-        2,
-        2
-      );
+    // Bézier sampling
+    function sampleBezier(p0, p1, p2, p3, samples = 120) {
+      const pts = [];
+      for (let i = 0; i <= samples; i++) {
+        const t = i / samples;
+        const mt = 1 - t;
+        const x =
+          mt * mt * mt * p0[0] +
+          3 * mt * mt * t * p1[0] +
+          3 * mt * t * t * p2[0] +
+          t * t * t * p3[0];
+        const y =
+          mt * mt * mt * p0[1] +
+          3 * mt * mt * t * p1[1] +
+          3 * mt * t * t * p2[1] +
+          t * t * t * p3[1];
+        pts.push([x, y]);
+      }
+      return pts;
     }
 
-    i++;
-    if (i < steps) {
-      requestAnimationFrame(step);
-    } else {
-      callback && callback();
+    // realistické tvary číslic 0–9 + "-"
+    const digitPaths = {
+      "0": [
+        sampleBezier([25,5],[40,5],[45,20],[45,25],80),
+        sampleBezier([45,25],[45,35],[35,45],[25,45],80),
+        sampleBezier([25,45],[10,45],[5,30],[5,25],80),
+        sampleBezier([5,25],[5,15],[15,5],[25,5],80)
+      ],
+
+      "1": [
+        sampleBezier([18,15],[22,8],[26,5],[28,10],80),
+        sampleBezier([28,10],[28,25],[28,35],[28,45],120),
+        sampleBezier([18,45],[23,48],[33,48],[38,45],60)
+      ],
+
+      "2": [
+        sampleBezier([10,20],[15,8],[30,5],[40,12],120),
+        sampleBezier([40,12],[45,20],[38,28],[25,33],120),
+        sampleBezier([25,33],[15,37],[10,42],[45,42],80)
+      ],
+
+      "3": [
+        sampleBezier([12,15],[20,7],[30,5],[38,10],80),
+        sampleBezier([38,10],[44,15],[42,23],[32,26],80),
+        sampleBezier([32,26],[42,29],[45,37],[40,43],80),
+        sampleBezier([40,43],[33,48],[23,48],[15,43],80)
+      ],
+
+      "4": [
+        sampleBezier([35,5],[35,20],[35,30],[35,45],120),
+        sampleBezier([10,25],[22,23],[30,23],[35,25],80),
+        sampleBezier([10,5],[10,15],[10,20],[10,25],80)
+      ],
+
+      "5": [
+        sampleBezier([40,8],[25,5],[15,5],[10,8],80),
+        sampleBezier([10,8],[8,15],[8,20],[10,23],60),
+        sampleBezier([10,23],[20,22],[30,23],[38,27],80),
+        sampleBezier([38,27],[45,32],[42,42],[34,46],80),
+        sampleBezier([34,46],[25,49],[17,47],[11,42],80)
+      ],
+
+      "6": [
+        sampleBezier([35,10],[28,5],[20,6],[14,11],80),
+        sampleBezier([14,11],[9,18],[8,26],[10,34],80),
+        sampleBezier([10,34],[13,42],[20,47],[28,47],80),
+        sampleBezier([28,47],[36,46],[40,40],[40,34],80),
+        sampleBezier([40,34],[39,28],[34,24],[26,23],80),
+        sampleBezier([26,23],[18,23],[14,26],[12,30],60)
+      ],
+
+      "7": [
+        sampleBezier([8,10],[25,7],[35,7],[42,8],80),
+        sampleBezier([42,8],[35,20],[28,32],[20,45],120)
+      ],
+
+      "8": [
+        sampleBezier([25,10],[32,8],[38,12],[38,18],80),
+        sampleBezier([38,18],[38,24],[32,28],[25,29],80),
+        sampleBezier([25,29],[18,28],[12,24],[12,18],80),
+        sampleBezier([12,18],[12,12],[18,8],[25,10],80),
+        sampleBezier([25,29],[33,30],[39,35],[39,41],80),
+        sampleBezier([39,41],[39,47],[33,50],[25,50],80),
+        sampleBezier([25,50],[17,50],[11,47],[11,41],80),
+        sampleBezier([11,41],[11,35],[17,30],[25,29],80)
+      ],
+
+      "9": [
+        sampleBezier([25,10],[32,8],[38,12],[38,18],80),
+        sampleBezier([38,18],[38,24],[32,28],[25,29],80),
+        sampleBezier([25,29],[18,28],[12,24],[12,18],80),
+        sampleBezier([12,18],[12,12],[18,8],[25,10],80),
+        sampleBezier([38,18],[40,24],[41,32],[39,40],80),
+        sampleBezier([39,40],[36,47],[29,50],[21,48],80)
+      ],
+
+      "-": [
+        sampleBezier([12,30],[20,29],[30,29],[38,30],60)
+      ]
+    };
+
+    function drawPath(points, ox, oy, cb) {
+      let i = 0;
+      function step() {
+        if (i >= points.length - 1) {
+          cb && cb();
+          return;
+        }
+        const [x1, y1] = points[i];
+        const [x2, y2] = points[i + 1];
+
+        const jx = (Math.random() - 0.5) * 1.2;
+        const jy = (Math.random() - 0.5) * 1.2;
+
+        ctx.beginPath();
+        ctx.moveTo(x1 + ox, y1 + oy);
+        ctx.lineTo(x2 + ox + jx, y2 + oy + jy);
+        ctx.stroke();
+
+        i++;
+        requestAnimationFrame(step);
+      }
+      step();
     }
-  }
 
-  if (steps > 0) step();
-  else callback && callback();
-}
-// --------------------------------------------------
-// 4) Definice tahů číslic (0–9)
-// --------------------------------------------------
-// Každé číslo: pole tahů, každý tah = pole bodů [x, y] v lokálním boxu 0–50
-const digitPaths = {
-  "0": [
-    [
-      [25, 5], [32, 6], [38, 9], [42, 14], [45, 22],
-      [45, 28], [42, 36], [38, 41], [32, 44], [25, 45],
-      [18, 44], [12, 41], [8, 36], [5, 28], [5, 22],
-      [8, 14], [12, 9], [18, 6], [25, 5]
-    ]
-  ],
-
-  "1": [
-    [
-      [18, 12], [24, 6], [26, 5], [27, 5], [27, 45]
-    ],
-    [
-      [18, 45], [34, 45]
-    ]
-  ],
-
-  "2": [
-    [
-      [8, 15], [14, 9], [22, 6], [30, 5], [37, 7],
-      [42, 11], [44, 17], [42, 23], [36, 28], [28, 32],
-      [20, 36], [12, 40], [8, 44], [45, 44]
-    ]
-  ],
-
-  "3": [
-    [
-      [10, 10], [18, 6], [26, 5], [34, 7], [40, 12],
-      [41, 18], [38, 23], [32, 26], [26, 27]
-    ],
-    [
-      [26, 27], [32, 28], [38, 31], [41, 36],
-      [40, 42], [34, 46], [26, 47], [18, 45], [10, 40]
-    ]
-  ],
-
-  "4": [
-    [
-      [34, 5], [34, 45]
-    ],
-    [
-      [10, 25], [34, 25]
-    ],
-    [
-      [10, 5], [10, 25]
-    ]
-  ],
-
-  "5": [
-    [
-      [40, 6], [15, 6], [10, 7], [9, 18]
-    ],
-    [
-      [9, 18], [20, 18], [30, 19], [38, 23],
-      [41, 30], [39, 37], [33, 42], [25, 45],
-      [17, 44], [11, 40]
-    ]
-  ],
-
-  "6": [
-    [
-      [35, 8], [28, 5], [20, 6], [14, 11],
-      [10, 18], [9, 26], [10, 34], [14, 40],
-      [20, 44], [27, 45], [34, 42], [38, 36],
-      [39, 30], [36, 25], [30, 22], [22, 22],
-      [16, 25]
-    ]
-  ],
-
-  "7": [
-    [
-      [8, 7], [42, 7]
-    ],
-    [
-      [42, 7], [20, 45]
-    ]
-  ],
-
-  "8": [
-    [
-      [25, 8], [31, 9], [36, 12], [38, 17],
-      [36, 22], [31, 25], [25, 26], [19, 25],
-      [14, 22], [12, 17], [14, 12], [19, 9], [25, 8]
-    ],
-    [
-      [25, 26], [31, 27], [36, 30], [38, 35],
-      [36, 40], [31, 43], [25, 44], [19, 43],
-      [14, 40], [12, 35], [14, 30], [19, 27], [25, 26]
-    ]
-  ],
-
-  "9": [
-    [
-      [25, 8], [31, 9], [36, 12], [38, 17],
-      [36, 22], [31, 25], [25, 26], [19, 25],
-      [14, 22], [12, 17], [14, 12], [19, 9], [25, 8]
-    ],
-    [
-      [36, 22], [38, 28], [39, 35], [36, 41],
-      [30, 45], [22, 47], [16, 45]
-    ]
-  ],
-
-  "-": [
-    [
-      [10, 25], [40, 25]
-    ]
-  ]
-};
-
-
-// --------------------------------------------------
-// 5) Kreslení jedné číslice
-// --------------------------------------------------
-function drawDigit(digit, offsetX, offsetY, callback) {
-  const paths = digitPaths[digit];
-  if (!paths) {
-    console.warn("Neznámý znak:", digit);
-    callback && callback();
-    return;
-  }
-
-  let pathIndex = 0;
-
-  function nextPath() {
-    if (pathIndex >= paths.length) {
-      callback && callback();
-      return;
+    function drawDigit(digit, ox, oy, cb) {
+      const paths = digitPaths[digit];
+      if (!paths) {
+        console.warn("Neznámý znak:", digit);
+        cb && cb();
+        return;
+      }
+      let p = 0;
+      function next() {
+        if (p >= paths.length) {
+          cb && cb();
+          return;
+        }
+        drawPath(paths[p], ox, oy, next);
+        p++;
+      }
+      next();
     }
-    const pts = paths[pathIndex];
-    pathIndex++;
-    drawPathAnimated(pts, offsetX, offsetY, nextPath);
-  }
 
-  nextPath();
-}
-
-function drawNumber(num, startX, startY, callback) {
-  const chars = String(num).split("");
-  let index = 0;
-
-  function nextChar() {
-    if (index >= chars.length) {
-      callback && callback();
-      return;
-    }
-    const ch = chars[index];
-    const x = startX + index * 60;
-    drawDigit(ch, x, startY, () => {
-      index++;
-      nextChar();
-    });
-  }
-
-  nextChar();
-}
-
-// --------------------------------------------------
-// 6) Kreslení celého čísla (např. 12)
-// --------------------------------------------------
-function drawNumber(num, startX, startY, callback) {
-  const digits = String(num).split("");
-  let index = 0;
-
-  function nextDigit() {
-    if (index >= digits.length) {
-      callback && callback();
-      return;
-    }
-    drawDigit(digits[index], startX + index * 60, startY, () => {
-      index++;
-      nextDigit();
-    });
-  }
-  nextDigit();
-}
-
-// --------------------------------------------------
-// 7) Animace mazání tabule
-// --------------------------------------------------
-function eraseBoard(callback) {
-  let alpha = 0;
-
-  function fade() {
-    alpha += 0.05;
-    ctx.fillStyle = `rgba(0,0,0,${alpha})`;
-    ctx.fillRect(0,0,canvas.width,canvas.height);
-
-    if (alpha < 1) requestAnimationFrame(fade);
-    else callback && callback();
-  }
-  fade();
-}
-
-// --------------------------------------------------
-// 8) Hlavní loop animace
-// --------------------------------------------------
-function startLoop() {
-  function cycle() {
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-
-    drawNumber(result, 250, 120, () => {
-      setTimeout(() => {
-        eraseBoard(() => {
-          setTimeout(cycle, 300);
+    function drawNumber(num, startX, startY, cb) {
+      const chars = String(num).split("");
+      let idx = 0;
+      function nextChar() {
+        if (idx >= chars.length) {
+          cb && cb();
+          return;
+        }
+        const ch = chars[idx];
+        const x = startX + idx * 70;
+        drawDigit(ch, x, startY, () => {
+          idx++;
+          nextChar();
         });
-      }, 5000);
+      }
+      nextChar();
+    }
+
+    function getExampleFromLocalStorage() {
+      const a = parseInt(localStorage.getItem("exA"), 10);
+      const b = parseInt(localStorage.getItem("exB"), 10);
+      const op = localStorage.getItem("exOp");
+      if (Number.isNaN(a) || Number.isNaN(b) || !op) return null;
+      let result;
+      switch (op) {
+        case "+": result = a + b; break;
+        case "-": result = a - b; break;
+        case "*": result = a * b; break;
+        default: return null;
+      }
+      return { a, b, op, result };
+    }
+
+    window.addEventListener("load", () => {
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const ex = getExampleFromLocalStorage();
+      const infoEl = document.getElementById("info");
+
+      let toDraw = 8;
+      if (ex) {
+        infoEl.textContent = `${ex.a} ${ex.op} ${ex.b} = ${ex.result}`;
+        toDraw = ex.result;
+      } else {
+        infoEl.textContent = "Ukázka kreslení čísla (nenalezen příklad v localStorage).";
+      }
+
+      drawNumber(toDraw, 260, 150, () => {});
     });
-  }
-  cycle();
-}
-
-startLoop();
-</script>
-
+  </script>
 </body>
 </html>
