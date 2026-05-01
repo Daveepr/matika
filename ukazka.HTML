@@ -82,7 +82,7 @@
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = 6;
+    ctx.lineWidth = 10;
 
     // Bézier sampling
     function sampleBezier(p0, p1, p2, p3, samples = 120) {
@@ -243,6 +243,13 @@
 
     function drawNumber(num, startX, startY, cb) {
       const chars = String(num).split("");
+
+      let scale = 5;
+      if (window.innerWidth < 900) scale = 6;
+      if (window.innerWidth < 600) scale = 7;
+
+      const spacing = 55 * scale; // OPRAVENÁ MEZERA
+
       let idx = 0;
       function nextChar() {
         if (idx >= chars.length) {
@@ -250,7 +257,7 @@
           return;
         }
         const ch = chars[idx];
-        const x = startX + idx * 70;
+        const x = startX + idx * spacing;
         drawDigit(ch, x, startY, () => {
           idx++;
           nextChar();
@@ -289,10 +296,9 @@
         infoEl.textContent = "Ukázka kreslení čísla.";
       }
 
-      drawNumber(toDraw, 100, 50, () => {});
+      drawNumber(toDraw, canvas.width * 0.15, canvas.height * 0.15, () => {});
     });
   </script>
 
 </body>
 </html>
-
