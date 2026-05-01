@@ -101,66 +101,69 @@ function drawLineAnimated(from, to, callback) {
 // 4) Definice tahů číslic (0–9)
 // --------------------------------------------------
 const digitStrokes = {
+
   "0": [
-    { from: [5,5], to: [45,5] },
-    { from: [45,5], to: [45,45] },
-    { from: [45,45], to: [5,45] },
-    { from: [5,45], to: [5,5] }
+    { type: "loop", cx: 25, cy: 25, rx: 18, ry: 22, start: 0, end: Math.PI * 2 }
   ],
+
   "1": [
-    { from: [25,5], to: [25,45] }
+    { type: "curve", from: [15, 10], cp: [25, 0], to: [25, 15] },
+    { type: "line", from: [25, 15], to: [25, 45] },
+    { type: "curve", from: [15, 45], cp: [25, 50], to: [35, 45] }
   ],
+
   "2": [
-    { from: [5,10], to: [45,10] },
-    { from: [45,10], to: [5,45] },
-    { from: [5,45], to: [45,45] }
+    { type: "curve", from: [10, 15], cp: [25, 0], to: [40, 15] },
+    { type: "curve", from: [40, 15], cp: [45, 30], to: [20, 35] },
+    { type: "curve", from: [20, 35], cp: [5, 45], to: [45, 45] }
   ],
+
   "3": [
-    { from: [5,10], to: [45,10] },
-    { from: [45,10], to: [45,25] },
-    { from: [45,25], to: [5,25] },
-    { from: [45,25], to: [45,45] },
-    { from: [45,45], to: [5,45] }
+    { type: "curve", from: [10, 10], cp: [25, 0], to: [40, 10] },
+    { type: "curve", from: [40, 10], cp: [45, 25], to: [25, 25] },
+    { type: "curve", from: [25, 25], cp: [45, 40], to: [40, 45] },
+    { type: "curve", from: [40, 45], cp: [25, 55], to: [10, 40] }
   ],
+
   "4": [
-    { from: [5,5], to: [5,25] },
-    { from: [5,25], to: [45,25] },
-    { from: [45,5], to: [45,45] }
+    { type: "line", from: [35, 5], to: [35, 45] },
+    { type: "curve", from: [10, 25], cp: [25, 20], to: [35, 25] },
+    { type: "line", from: [10, 5], to: [10, 25] }
   ],
+
   "5": [
-    { from: [45,5], to: [5,5] },
-    { from: [5,5], to: [5,25] },
-    { from: [5,25], to: [45,25] },
-    { from: [45,25], to: [45,45] },
-    { from: [45,45], to: [5,45] }
+    { type: "line", from: [40, 5], to: [10, 5] },
+    { type: "curve", from: [10, 5], cp: [5, 20], to: [25, 20] },
+    { type: "curve", from: [25, 20], cp: [45, 25], to: [35, 40] },
+    { type: "curve", from: [35, 40], cp: [25, 55], to: [10, 40] }
   ],
+
   "6": [
-    { from: [45,5], to: [5,25] },
-    { from: [5,25], to: [5,45] },
-    { from: [5,45], to: [45,45] },
-    { from: [45,45], to: [45,25] },
-    { from: [45,25], to: [5,25] }
+    { type: "curve", from: [35, 10], cp: [25, 0], to: [15, 10] },
+    { type: "curve", from: [15, 10], cp: [5, 25], to: [15, 35] },
+    { type: "loop", cx: 22, cy: 35, rx: 15, ry: 12, start: 0, end: Math.PI * 2 }
   ],
+
   "7": [
-    { from: [5,5], to: [45,5] },
-    { from: [45,5], to: [5,45] }
+    { type: "line", from: [5, 5], to: [45, 5] },
+    { type: "curve", from: [45, 5], cp: [25, 55], to: [20, 45] }
   ],
+
   "8": [
-    { from: [25,5], to: [45,25] },
-    { from: [45,25], to: [25,45] },
-    { from: [25,45], to: [5,25] },
-    { from: [5,25], to: [25,5] }
+    // horní smyčka
+    { type: "loop", cx: 25, cy: 15, rx: 12, ry: 10, start: 0, end: Math.PI * 2 },
+    // dolní smyčka
+    { type: "loop", cx: 25, cy: 35, rx: 15, ry: 12, start: 0, end: Math.PI * 2 }
   ],
+
   "9": [
-    { from: [5,45], to: [45,25] },
-    { from: [45,25], to: [45,5] },
-    { from: [45,5], to: [5,5] },
-    { from: [5,5], to: [5,25] },
-    { from: [5,25], to: [45,25] }
+    { type: "loop", cx: 25, cy: 15, rx: 12, ry: 10, start: 0, end: Math.PI * 2 },
+    { type: "curve", from: [35, 25], cp: [45, 45], to: [20, 45] }
   ],
-"-": [
-  { from: [5, 25], to: [45, 25] }
-]
+
+  "-": [
+    { type: "line", from: [10, 25], to: [40, 25] }
+  ]
 };
 
 // --------------------------------------------------
