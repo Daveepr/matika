@@ -287,7 +287,15 @@
   <div class="subtitle">
     Podívej se na příklad, napiš výsledek křídou na tabuli a učitel ti poradí.
   </div>
-
+<!-- NOVÝ VÝBĚR OBTÍŽNOSTI -->
+  <div style="text-align:center; margin-bottom:10px;">
+    <label for="difficulty"><b>Vyberte složitost příkladů:</b></label>
+    <select id="difficulty">
+      <option value="easy">0 - 9 čísel</option>
+      <option value="medium">0 - 100 čísel</option>
+    </select>
+  </div>
+	
   <div class="layout">
     <div class="card canvas-card">
       <div class="task-label">Příklad</div>
@@ -552,8 +560,12 @@
 
     // PŘÍKLADY
     function generateTask() {
-      const a = Math.floor(Math.random() * 10);
-      const b = Math.floor(Math.random() * 10);
+     const difficulty = document.getElementById("difficulty").value;
+
+      let max = 10;
+      if (difficulty === "medium") max = 100;
+	  const a = Math.floor(Math.random() * max);
+      const b = Math.floor(Math.random() * max);
       const ops = ["+", "-", "*"];
       const op = ops[Math.floor(Math.random() * ops.length)];
      // ULOŽENÍ PRO UKÁZKU
