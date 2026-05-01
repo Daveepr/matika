@@ -12,36 +12,45 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
-      padding-top: 30px;
+      padding-top: 20px;
     }
+
     h1 {
       margin-bottom: 10px;
-      font-size: 26px;
+      font-size: 24px;
     }
+
     #info {
       margin-bottom: 15px;
       font-size: 18px;
     }
+
+    /* RESPONSIVNÍ TABULE */
     #board {
+      width: 90vw;
+      max-width: 700px;
+      height: 45vw;
+      max-height: 350px;
       background: #000;
-      border-radius: 8px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.8);
+      border-radius: 10px;
+      box-shadow: 0 0 25px rgba(0,0,0,0.8);
       display: block;
     }
+
     .btn-row {
       margin-top: 20px;
       display: flex;
       gap: 10px;
     }
+
     button {
-      padding: 8px 16px;
+      padding: 10px 20px;
       border-radius: 6px;
       border: none;
       cursor: pointer;
       font-size: 16px;
     }
+
     .back-btn {
       background: #2e7d32;
       color: #fff;
@@ -52,25 +61,28 @@
   </style>
 </head>
 <body>
+
   <h1>Ukázka příkladu</h1>
   <div id="info"></div>
-  <canvas id="board" width="900" height="400"></canvas>
+
+  <canvas id="board"></canvas>
 
   <div class="btn-row">
-      <button onclick="history.back()">Zpět</button>    
+    <button class="back-btn" onclick="history.back()">Zpět</button>
   </div>
 
   <script>
     const canvas = document.getElementById("board");
     const ctx = canvas.getContext("2d");
 
-    // základní vzhled "křídy"
+    // RESPONSIVNÍ CANVAS
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
+
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     ctx.strokeStyle = "#ffffff";
     ctx.lineWidth = 6;
-    ctx.fillStyle = "#000000";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Bézier sampling
     function sampleBezier(p0, p1, p2, p3, samples = 120) {
@@ -93,7 +105,7 @@
       return pts;
     }
 
-    // realistické tvary číslic 0–9 + "-"
+    // REALISTICKÉ ČÍSLICE
     const digitPaths = {
       "0": [
         sampleBezier([25,5],[40,5],[45,20],[45,25],80),
@@ -175,12 +187,17 @@
     };
 
     function drawPath(points, ox, oy, cb) {
+      let scale = 5;
+      if (window.innerWidth < 900) scale = 6;
+      if (window.innerWidth < 600) scale = 7;
+
       let i = 0;
       function step() {
         if (i >= points.length - 1) {
           cb && cb();
           return;
         }
+
         const [x1, y1] = points[i];
         const [x2, y2] = points[i + 1];
 
@@ -188,11 +205,19 @@
         const jy = (Math.random() - 0.5) * 1.2;
 
         ctx.beginPath();
-        ctx.moveTo(x1 + ox, y1 + oy);
-        ctx.lineTo(x2 + ox + jx, y2 + oy + jy);
+        ctx.moveTo(x1 * scale + ox, y1 * scale + oy);
+        ctx.lineTo(x2 * scale + ox + jx, y2 * scale + oy + jy);
         ctx.stroke();
 
-        i++;
+        // CHALK DUST
+        if (Math.random() < 0.25) {
+          ctx.fillStyle = "rgba(255,255,255,0.15)";
+          const dx = (Math.random() - 0.5) * 12;
+          const dy = (Math.random() - 0.5) * 12;
+          ctx.fillRect(x2 * scale + ox + dx, y2 * scale + oy + dy, 2, 2);
+        }
+
+        i += 2; // rychlejší animace
         requestAnimationFrame(step);
       }
       step();
@@ -201,7 +226,6 @@
     function drawDigit(digit, ox, oy, cb) {
       const paths = digitPaths[digit];
       if (!paths) {
-        console.warn("Neznámý znak:", digit);
         cb && cb();
         return;
       }
@@ -251,7 +275,7 @@
     }
 
     window.addEventListener("load", () => {
-      ctx.fillStyle = "#000000";
+      ctx.fillStyle = "#000";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       const ex = getExampleFromLocalStorage();
@@ -262,11 +286,13 @@
         infoEl.textContent = `${ex.a} ${ex.op} ${ex.b} = ${ex.result}`;
         toDraw = ex.result;
       } else {
-        infoEl.textContent = "Ukázka kreslení čísla (nenalezen příklad v localStorage).";
+        infoEl.textContent = "Ukázka kreslení čísla.";
       }
 
-      drawNumber(toDraw, 260, 150, () => {});
+      drawNumber(toDraw, 100, 50, () => {});
     });
   </script>
+
 </body>
 </html>
+
