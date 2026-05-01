@@ -70,122 +70,206 @@ function chalkNoise(x, y) {
 // --------------------------------------------------
 // 3) Animované kreslení čáry
 // --------------------------------------------------
-function drawLineAnimated(from, to, callback) {
-  const steps = 40;
-  let step = 0;
+function drawPathAnimated(points, offsetX, offsetY, callback) {
+  const steps = points.length - 1;
+  let i = 0;
 
-  const dx = (to[0] - from[0]) / steps;
-  const dy = (to[1] - from[1]) / steps;
+  function step() {
+    const [x1, y1] = points[i];
+    const [x2, y2] = points[i + 1];
 
-  function drawStep() {
-    const x1 = from[0] + dx * step;
-    const y1 = from[1] + dy * step;
-    const x2 = from[0] + dx * (step + 1);
-    const y2 = from[1] + dy * (step + 1);
+    // drobný jitter, ať to není robot
+    const jx = (Math.random() - 0.5) * 1.2;
+    const jy = (Math.random() - 0.5) * 1.2;
 
     ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
+    ctx.moveTo(x1 + offsetX, y1 + offsetY);
+    ctx.lineTo(x2 + offsetX + jx, y2 + offsetY + jy);
     ctx.stroke();
 
-    chalkNoise(x2, y2);
+    // chalk noise
+    if (Math.random() < 0.3) {
+      ctx.fillStyle = "rgba(255,255,255,0.18)";
+      ctx.fillRect(
+        x2 + offsetX + (Math.random() * 4 - 2),
+        y2 + offsetY + (Math.random() * 4 - 2),
+        2,
+        2
+      );
+    }
 
-    step++;
-    if (step < steps) requestAnimationFrame(drawStep);
-    else callback && callback();
+    i++;
+    if (i < steps) {
+      requestAnimationFrame(step);
+    } else {
+      callback && callback();
+    }
   }
-  drawStep();
-}
 
+  if (steps > 0) step();
+  else callback && callback();
+}
 // --------------------------------------------------
 // 4) Definice tahů číslic (0–9)
 // --------------------------------------------------
-const digitStrokes = {
-
+// Každé číslo: pole tahů, každý tah = pole bodů [x, y] v lokálním boxu 0–50
+const digitPaths = {
   "0": [
-    { type: "loop", cx: 25, cy: 25, rx: 18, ry: 22, start: 0, end: Math.PI * 2 }
+    [
+      [25, 5], [32, 6], [38, 9], [42, 14], [45, 22],
+      [45, 28], [42, 36], [38, 41], [32, 44], [25, 45],
+      [18, 44], [12, 41], [8, 36], [5, 28], [5, 22],
+      [8, 14], [12, 9], [18, 6], [25, 5]
+    ]
   ],
 
   "1": [
-    { type: "curve", from: [15, 10], cp: [25, 0], to: [25, 15] },
-    { type: "line", from: [25, 15], to: [25, 45] },
-    { type: "curve", from: [15, 45], cp: [25, 50], to: [35, 45] }
+    [
+      [18, 12], [24, 6], [26, 5], [27, 5], [27, 45]
+    ],
+    [
+      [18, 45], [34, 45]
+    ]
   ],
 
   "2": [
-    { type: "curve", from: [10, 15], cp: [25, 0], to: [40, 15] },
-    { type: "curve", from: [40, 15], cp: [45, 30], to: [20, 35] },
-    { type: "curve", from: [20, 35], cp: [5, 45], to: [45, 45] }
+    [
+      [8, 15], [14, 9], [22, 6], [30, 5], [37, 7],
+      [42, 11], [44, 17], [42, 23], [36, 28], [28, 32],
+      [20, 36], [12, 40], [8, 44], [45, 44]
+    ]
   ],
 
   "3": [
-    { type: "curve", from: [10, 10], cp: [25, 0], to: [40, 10] },
-    { type: "curve", from: [40, 10], cp: [45, 25], to: [25, 25] },
-    { type: "curve", from: [25, 25], cp: [45, 40], to: [40, 45] },
-    { type: "curve", from: [40, 45], cp: [25, 55], to: [10, 40] }
+    [
+      [10, 10], [18, 6], [26, 5], [34, 7], [40, 12],
+      [41, 18], [38, 23], [32, 26], [26, 27]
+    ],
+    [
+      [26, 27], [32, 28], [38, 31], [41, 36],
+      [40, 42], [34, 46], [26, 47], [18, 45], [10, 40]
+    ]
   ],
 
   "4": [
-    { type: "line", from: [35, 5], to: [35, 45] },
-    { type: "curve", from: [10, 25], cp: [25, 20], to: [35, 25] },
-    { type: "line", from: [10, 5], to: [10, 25] }
+    [
+      [34, 5], [34, 45]
+    ],
+    [
+      [10, 25], [34, 25]
+    ],
+    [
+      [10, 5], [10, 25]
+    ]
   ],
 
   "5": [
-    { type: "line", from: [40, 5], to: [10, 5] },
-    { type: "curve", from: [10, 5], cp: [5, 20], to: [25, 20] },
-    { type: "curve", from: [25, 20], cp: [45, 25], to: [35, 40] },
-    { type: "curve", from: [35, 40], cp: [25, 55], to: [10, 40] }
+    [
+      [40, 6], [15, 6], [10, 7], [9, 18]
+    ],
+    [
+      [9, 18], [20, 18], [30, 19], [38, 23],
+      [41, 30], [39, 37], [33, 42], [25, 45],
+      [17, 44], [11, 40]
+    ]
   ],
 
   "6": [
-    { type: "curve", from: [35, 10], cp: [25, 0], to: [15, 10] },
-    { type: "curve", from: [15, 10], cp: [5, 25], to: [15, 35] },
-    { type: "loop", cx: 22, cy: 35, rx: 15, ry: 12, start: 0, end: Math.PI * 2 }
+    [
+      [35, 8], [28, 5], [20, 6], [14, 11],
+      [10, 18], [9, 26], [10, 34], [14, 40],
+      [20, 44], [27, 45], [34, 42], [38, 36],
+      [39, 30], [36, 25], [30, 22], [22, 22],
+      [16, 25]
+    ]
   ],
 
   "7": [
-    { type: "line", from: [5, 5], to: [45, 5] },
-    { type: "curve", from: [45, 5], cp: [25, 55], to: [20, 45] }
+    [
+      [8, 7], [42, 7]
+    ],
+    [
+      [42, 7], [20, 45]
+    ]
   ],
 
   "8": [
-    // horní smyčka
-    { type: "loop", cx: 25, cy: 15, rx: 12, ry: 10, start: 0, end: Math.PI * 2 },
-    // dolní smyčka
-    { type: "loop", cx: 25, cy: 35, rx: 15, ry: 12, start: 0, end: Math.PI * 2 }
+    [
+      [25, 8], [31, 9], [36, 12], [38, 17],
+      [36, 22], [31, 25], [25, 26], [19, 25],
+      [14, 22], [12, 17], [14, 12], [19, 9], [25, 8]
+    ],
+    [
+      [25, 26], [31, 27], [36, 30], [38, 35],
+      [36, 40], [31, 43], [25, 44], [19, 43],
+      [14, 40], [12, 35], [14, 30], [19, 27], [25, 26]
+    ]
   ],
 
   "9": [
-    { type: "loop", cx: 25, cy: 15, rx: 12, ry: 10, start: 0, end: Math.PI * 2 },
-    { type: "curve", from: [35, 25], cp: [45, 45], to: [20, 45] }
+    [
+      [25, 8], [31, 9], [36, 12], [38, 17],
+      [36, 22], [31, 25], [25, 26], [19, 25],
+      [14, 22], [12, 17], [14, 12], [19, 9], [25, 8]
+    ],
+    [
+      [36, 22], [38, 28], [39, 35], [36, 41],
+      [30, 45], [22, 47], [16, 45]
+    ]
   ],
 
   "-": [
-    { type: "line", from: [10, 25], to: [40, 25] }
+    [
+      [10, 25], [40, 25]
+    ]
   ]
 };
+
 
 // --------------------------------------------------
 // 5) Kreslení jedné číslice
 // --------------------------------------------------
 function drawDigit(digit, offsetX, offsetY, callback) {
-  const strokes = digitStrokes[digit];
-  let i = 0;
+  const paths = digitPaths[digit];
+  if (!paths) {
+    console.warn("Neznámý znak:", digit);
+    callback && callback();
+    return;
+  }
 
-  function next() {
-    if (i >= strokes.length) {
+  let pathIndex = 0;
+
+  function nextPath() {
+    if (pathIndex >= paths.length) {
       callback && callback();
       return;
     }
-    const s = strokes[i];
-    drawLineAnimated(
-      [s.from[0] + offsetX, s.from[1] + offsetY],
-      [s.to[0] + offsetX, s.to[1] + offsetY],
-      () => { i++; next(); }
-    );
+    const pts = paths[pathIndex];
+    pathIndex++;
+    drawPathAnimated(pts, offsetX, offsetY, nextPath);
   }
-  next();
+
+  nextPath();
+}
+
+function drawNumber(num, startX, startY, callback) {
+  const chars = String(num).split("");
+  let index = 0;
+
+  function nextChar() {
+    if (index >= chars.length) {
+      callback && callback();
+      return;
+    }
+    const ch = chars[index];
+    const x = startX + index * 60;
+    drawDigit(ch, x, startY, () => {
+      index++;
+      nextChar();
+    });
+  }
+
+  nextChar();
 }
 
 // --------------------------------------------------
