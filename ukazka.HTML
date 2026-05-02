@@ -25,7 +25,6 @@
       font-size: 18px;
     }
 
-    /* RESPONSIVNÍ TABULE */
     #board {
       width: 90vw;
       max-width: 700px;
@@ -75,7 +74,6 @@
     const canvas = document.getElementById("board");
     const ctx = canvas.getContext("2d");
 
-    // RESPONSIVNÍ CANVAS
     canvas.width = canvas.clientWidth;
     canvas.height = canvas.clientHeight;
 
@@ -84,7 +82,6 @@
     ctx.strokeStyle = "#ffffff";
     ctx.lineWidth = 10;
 
-    // Bézier sampling
     function sampleBezier(p0, p1, p2, p3, samples = 120) {
       const pts = [];
       for (let i = 0; i <= samples; i++) {
@@ -105,7 +102,6 @@
       return pts;
     }
 
-    // REALISTICKÉ ČÍSLICE
     const digitPaths = {
       "0": [
         sampleBezier([25,5],[40,5],[45,20],[45,25],80),
@@ -113,32 +109,27 @@
         sampleBezier([25,45],[10,45],[5,30],[5,25],80),
         sampleBezier([5,25],[5,15],[15,5],[25,5],80)
       ],
-
       "1": [
         sampleBezier([18,15],[22,8],[26,5],[28,10],80),
         sampleBezier([28,10],[28,25],[28,35],[28,45],120),
         sampleBezier([18,45],[23,48],[33,48],[38,45],60)
       ],
-
       "2": [
         sampleBezier([10,20],[15,8],[30,5],[40,12],120),
         sampleBezier([40,12],[45,20],[38,28],[25,33],120),
         sampleBezier([25,33],[15,37],[10,42],[45,42],80)
       ],
-
       "3": [
         sampleBezier([12,15],[20,7],[30,5],[38,10],80),
         sampleBezier([38,10],[44,15],[42,23],[32,26],80),
         sampleBezier([32,26],[42,29],[45,37],[40,43],80),
         sampleBezier([40,43],[33,48],[23,48],[15,43],80)
       ],
-
       "4": [
         sampleBezier([35,5],[35,20],[35,30],[35,45],120),
         sampleBezier([10,25],[22,23],[30,23],[35,25],80),
         sampleBezier([10,5],[10,15],[10,20],[10,25],80)
       ],
-
       "5": [
         sampleBezier([40,8],[25,5],[15,5],[10,8],80),
         sampleBezier([10,8],[8,15],[8,20],[10,23],60),
@@ -146,7 +137,6 @@
         sampleBezier([38,27],[45,32],[42,42],[34,46],80),
         sampleBezier([34,46],[25,49],[17,47],[11,42],80)
       ],
-
       "6": [
         sampleBezier([35,10],[28,5],[20,6],[14,11],80),
         sampleBezier([14,11],[9,18],[8,26],[10,34],80),
@@ -155,12 +145,10 @@
         sampleBezier([40,34],[39,28],[34,24],[26,23],80),
         sampleBezier([26,23],[18,23],[14,26],[12,30],60)
       ],
-
       "7": [
         sampleBezier([8,10],[25,7],[35,7],[42,8],80),
         sampleBezier([42,8],[35,20],[28,32],[20,45],120)
       ],
-
       "8": [
         sampleBezier([25,10],[32,8],[38,12],[38,18],80),
         sampleBezier([38,18],[38,24],[32,28],[25,29],80),
@@ -171,7 +159,6 @@
         sampleBezier([25,50],[17,50],[11,47],[11,41],80),
         sampleBezier([11,41],[11,35],[17,30],[25,29],80)
       ],
-
       "9": [
         sampleBezier([25,10],[32,8],[38,12],[38,18],80),
         sampleBezier([38,18],[38,24],[32,28],[25,29],80),
@@ -180,17 +167,37 @@
         sampleBezier([38,18],[40,24],[41,32],[39,40],80),
         sampleBezier([39,40],[36,47],[29,50],[21,48],80)
       ],
-
       "-": [
         sampleBezier([12,30],[20,29],[30,29],[38,30],60)
       ]
     };
 
-    function drawPath(points, ox, oy, cb) {
-      let scale = 5;
-      if (window.innerWidth < 900) scale = 6;
-      if (window.innerWidth < 600) scale = 7;
+    // relativní šířky číslic (kerning)
+    const digitWidths = {
+      "0": 40,
+      "1": 22,
+      "2": 32,
+      "3": 34,
+      "4": 30,
+      "5": 32,
+      "6": 34,
+      "7": 28,
+      "8": 42,
+      "9": 38,
+      "-": 28
+    };
 
+    function getScaleForLength(len) {
+      const w = window.innerWidth;
+      let base;
+      if (len <= 2) base = (w < 600) ? 7.5 : (w < 900 ? 7 : 6.5);
+      else if (len === 3) base = (w < 600) ? 6.5 : (w < 900 ? 6 : 5.5);
+      else if (len === 4) base = (w < 600) ? 5.5 : (w < 900 ? 5 : 4.8);
+      else base = (w < 600) ? 4.8 : (w < 900 ? 4.5 : 4.2); // 5 číslic (např. 10000)
+      return base;
+    }
+
+    function drawPath(points, ox, oy, scale, cb) {
       let i = 0;
       function step() {
         if (i >= points.length - 1) {
@@ -209,7 +216,6 @@
         ctx.lineTo(x2 * scale + ox + jx, y2 * scale + oy + jy);
         ctx.stroke();
 
-        // CHALK DUST
         if (Math.random() < 0.25) {
           ctx.fillStyle = "rgba(255,255,255,0.15)";
           const dx = (Math.random() - 0.5) * 12;
@@ -217,13 +223,13 @@
           ctx.fillRect(x2 * scale + ox + dx, y2 * scale + oy + dy, 2, 2);
         }
 
-        i += 2; // rychlejší animace
+        i += 2;
         requestAnimationFrame(step);
       }
       step();
     }
 
-    function drawDigit(digit, ox, oy, cb) {
+    function drawDigit(digit, ox, oy, scale, cb) {
       const paths = digitPaths[digit];
       if (!paths) {
         cb && cb();
@@ -235,30 +241,42 @@
           cb && cb();
           return;
         }
-        drawPath(paths[p], ox, oy, next);
+        drawPath(paths[p], ox, oy, scale, next);
         p++;
       }
       next();
     }
 
-    function drawNumber(num, startX, startY, cb) {
-      const chars = String(num).split("");
+    function drawNumber(num, cb) {
+      const str = String(num);
+      const chars = str.split("");
 
-      let scale = 5;
-      if (window.innerWidth < 900) scale = 6;
-      if (window.innerWidth < 600) scale = 7;
+      const len = chars.length;
+      const scale = getScaleForLength(len);
 
-      const spacing = 55 * scale; // OPRAVENÁ MEZERA
+      // spočítat celkovou šířku čísla podle kerningu
+      let totalWidth = 0;
+      for (let i = 0; i < chars.length; i++) {
+        const ch = chars[i];
+        const w = digitWidths[ch] || 32;
+        totalWidth += w * scale;
+      }
 
+      const startX = (canvas.width - totalWidth) / 2;
+      const startY = canvas.height * 0.18; // optické vycentrování vertikálně
+
+      let offsetX = startX;
       let idx = 0;
+
       function nextChar() {
         if (idx >= chars.length) {
           cb && cb();
           return;
         }
         const ch = chars[idx];
-        const x = startX + idx * spacing;
-        drawDigit(ch, x, startY, () => {
+        const w = digitWidths[ch] || 32;
+        drawDigit(ch, offsetX, startY, scale, () => {
+          offsetX += w * scale;
           idx++;
           nextChar();
         });
@@ -296,7 +314,7 @@
         infoEl.textContent = "Ukázka kreslení čísla.";
       }
 
-      drawNumber(toDraw, canvas.width * 0.15, canvas.height * 0.15, () => {});
+      drawNumber(toDraw, () => {});
     });
   </script>
 
