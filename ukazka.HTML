@@ -110,9 +110,15 @@
         sampleBezier([5,25],[5,15],[15,5],[25,5],80)
       ],
       "1": [
-        sampleBezier([18,15],[22,8],[26,5],[28,10],80),
-        sampleBezier([28,10],[28,25],[28,35],[28,45],120),
-        sampleBezier([18,45],[23,48],[33,48],[38,45],60)
+        digitPaths["1"] = [
+  sampleBezier(
+    [10, 45],   // start dole vlevo
+    [18, 30],   // jemné prohnutí
+    [28, 18],   // další kontrolní bod
+    [40, 5],    // konec nahoře vpravo
+    140
+  )
+];
       ],
       "2": [
         sampleBezier([10,20],[15,8],[30,5],[40,12],120),
@@ -137,14 +143,20 @@
         sampleBezier([38,27],[45,32],[42,42],[34,46],80),
         sampleBezier([34,46],[25,49],[17,47],[11,42],80)
       ],
-      "6": [
-        sampleBezier([35,10],[28,5],[20,6],[14,11],80),
-        sampleBezier([14,11],[9,18],[8,26],[10,34],80),
-        sampleBezier([10,34],[13,42],[20,47],[28,47],80),
-        sampleBezier([28,47],[36,46],[40,40],[40,34],80),
-        sampleBezier([40,34],[39,28],[34,24],[26,23],80),
-        sampleBezier([26,23],[18,23],[14,26],[12,30],60)
-      ],
+   digitPaths["6"] = [
+  // horní háček
+  sampleBezier([32, 10], [28, 5], [22, 5], [18, 12], 80),
+
+  // levá strana bříška
+  sampleBezier([18, 12], [10, 22], [10, 35], [18, 42], 80),
+
+  // spodní oblouk (uzavřený!)
+  sampleBezier([18, 42], [26, 48], [34, 46], [38, 38], 80),
+
+  // pravá strana bříška zpět nahoru (uzavření tvaru)
+  sampleBezier([38, 38], [40, 30], [36, 22], [28, 20], 80)
+];
+
       "7": [
         sampleBezier([8,10],[25,7],[35,7],[42,8],80),
         sampleBezier([42,8],[35,20],[28,32],[20,45],120)
@@ -175,12 +187,12 @@
     // relativní šířky číslic (kerning)
     const digitWidths = {
       "0": 40,
-      "1": 22,
+      "1": 26,
       "2": 32,
       "3": 34,
       "4": 30,
       "5": 32,
-      "6": 34,
+      "6": 38,
       "7": 28,
       "8": 42,
       "9": 38,
@@ -188,16 +200,14 @@
     };
 
     function getScaleForLength(len) {
-      const w = window.innerWidth;
-      let base;
-      if (len <= 2) base = (w < 600) ? 7.5 : (w < 900 ? 7 : 6.5);
-      else if (len === 3) base = (w < 600) ? 6.5 : (w < 900 ? 6 : 5.5);
-      else if (len === 4) base = (w < 600) ? 5.5 : (w < 900 ? 5 : 4.8);
-      else base = (w < 600) ? 4.8 : (w < 900 ? 4.5 : 4.2); // 5 číslic (např. 10000)
-      return base;
-    }
-
-    function drawPath(points, ox, oy, scale, cb) {
+    const w = window.innerWidth;
+   let base;
+  if (len <= 2) return w < 600 ? 7 : 6;
+  if (len === 3) return w < 600 ? 6 : 5;
+  if (len === 4) return w < 600 ? 5 : 4.2;
+  return w < 600 ? 4.2 : 3.6; // 5 číslic
+} 
+      function drawPath(points, ox, oy, scale, cb) {
       let i = 0;
       function step() {
         if (i >= points.length - 1) {
