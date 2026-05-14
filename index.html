@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hravá Matika – Menu</title>
+
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: "Comic Sans MS", "Baloo 2", sans-serif;
+        background: linear-gradient(135deg, #ffecd2, #fcb69f);
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+    }
+
+    /* Animované bubliny v pozadí */
+    .bubble {
+        position: absolute;
+        border-radius: 50%;
+        opacity: 0.35;
+        animation: floatUp 12s infinite ease-in-out;
+        filter: blur(2px);
+    }
+
+    @keyframes floatUp {
+        0% { transform: translateY(0) scale(1); }
+        50% { transform: translateY(-40px) scale(1.1); }
+        100% { transform: translateY(0) scale(1); }
+    }
+
+    .container {
+        text-align: center;
+        padding: 25px;
+        background: rgba(255,255,255,0.85);
+        border-radius: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+        width: 90%;
+        max-width: 480px;
+        animation: fadeIn 0.8s ease-out;
+        backdrop-filter: blur(6px);
+    }
+
+    h1 {
+        font-size: 2.6rem;
+        margin-bottom: 25px;
+        color: #333;
+        text-shadow: 1px 1px 0 white;
+        animation: popIn 0.6s ease-out;
+    }
+
+    @keyframes popIn {
+        0% { transform: scale(0.7); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    .btn {
+        display: block;
+        width: 100%;
+        padding: 18px;
+        margin: 14px 0;
+        font-size: 1.4rem;
+        border-radius: 20px;
+        border: none;
+        cursor: pointer;
+        background: #fff;
+        color: #333;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        animation: fadeSlide 0.6s ease-out;
+    }
+
+    @keyframes fadeSlide {
+        0% { opacity: 0; transform: translateY(20px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .btn:hover {
+        transform: translateY(-5px) scale(1.03);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+    }
+
+    .btn:active {
+        transform: scale(0.97);
+    }
+
+</style>
+</head>
+
+<body>
+
+<!-- Animované bubliny -->
+<div class="bubble" style="width:90px;height:90px;left:10%;top:70%;background:#ff9a9e;"></div>
+<div class="bubble" style="width:120px;height:120px;left:70%;top:20%;background:#fad0c4;"></div>
+<div class="bubble" style="width:70px;height:70px;left:50%;top:80%;background:#fbc2eb;"></div>
+<div class="bubble" style="width:100px;height:100px;left:20%;top:10%;background:#a1c4fd;"></div>
+
+<div class="container">
+    <h1>🎲 Hravá Matika</h1>
+
+    <button class="btn" onclick="location.href='hrava-matika.html'">
+        ✏️ Hravá matika
+    </button>
+
+    <button class="btn" onclick="location.href='matika-na-cas.html'">
+        ⏱️ Matika na čas
+    </button>
+
+    <button class="btn" onclick="location.href='dopln-znamenko.html'">
+        ➕➖ Doplň znaménko
+    </button>
+
+    <button class="btn" onclick="location.href='help.html'">
+        ❓ Nápověda
+    </button>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matika na čas</title>
+
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: "Comic Sans MS", "Baloo 2", sans-serif;
+        background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 20px;
+        overflow-x: hidden;
+        position: relative;
+    }
+
+    /* Animované pozadí */
+    .bubble {
+        position: absolute;
+        border-radius: 50%;
+        opacity: 0.35;
+        animation: float 10s infinite ease-in-out;
+        filter: blur(2px);
+    }
+
+    @keyframes float {
+        0% { transform: translateY(0) scale(1); }
+        50% { transform: translateY(-30px) scale(1.1); }
+        100% { transform: translateY(0) scale(1); }
+    }
+
+    .card {
+        border: 3px solid rgba(255,255,255,0.7);
+	width: 100%;
+        max-width: 600px;
+        background: rgba(255,255,255,0.9);
+        padding: 25px;
+        border-radius: 25px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+        backdrop-filter: blur(6px);
+        animation: fadeIn 0.7s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    h1, h2 {
+        text-align: center;
+        color: #333;
+        text-shadow: 1px 1px 0 white;
+    }
+
+    h1 { font-size: 2.4rem; }
+    h2 { font-size: 1.8rem; }
+
+    .btn {
+        background: linear-gradient(135deg, #ffffff, #f3f3f3);
+	display: block;
+        width: 100%;
+        padding: 16px;
+        margin: 12px 0;
+        font-size: 1.4rem;
+        border-radius: 18px;
+        border: none;
+        cursor: pointer;
+        background: #fff;
+        color: #333;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+        transition: 0.2s ease;
+    }
+
+    .btn:hover {
+        background: linear-gradient(135deg, #fff7d1, #ffe9a8);
+	transform: translateY(-4px) scale(1.03);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+    }
+
+    .btn:active {
+        transform: scale(0.97);
+    }
+
+    .example {
+        font-size: 2.6rem;
+        text-align: center;
+        margin: 20px 0;
+        font-weight: bold;
+    }
+
+    #answer {
+        width: 60%;
+        padding: 10px;
+        font-size: 1.6rem;
+        border-radius: 12px;
+        border: 2px solid #888;
+        text-align: center;
+        outline: none;
+        margin: 0 auto;
+        display: block;
+    }
+
+    #timer {
+        text-align: center;
+        font-size: 1.6rem;
+        margin-top: 10px;
+        font-weight: bold;
+    }
+
+    .summary-item {
+        font-size: 1.3rem;
+        margin: 8px 0;
+    }
+
+#menuTop {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    padding: 10px 18px;
+    font-size: 1.1rem;
+    border-radius: 12px;
+    border: none;
+    background: rgba(255,255,255,0.9);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    cursor: pointer;
+    z-index: 999;
+    transition: 0.2s ease;
+}
+
+#menuTop:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+}
+
+.title {
+    font-weight: bold;
+    letter-spacing: 1px;
+    animation: popIn 0.6s ease;
+}
+
+@keyframes popIn {
+    0% { transform: scale(0.8); opacity: 0; }
+    60% { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(1); }
+}
+
+.op-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 20px;
+    margin: 20px auto;
+    max-width: 350px;
+    text-align: left;
+}
+
+.op-item {
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pretty-check {
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border: 2px solid #666;
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    transition: 0.2s;
+}
+
+.pretty-check:checked {
+    background: #4caf50;
+    border-color: #4caf50;
+}
+
+.pretty-check:checked::after {
+    content: "✔";
+    color: white;
+    font-size: 16px;
+    position: absolute;
+    top: -2px;
+    left: 3px;
+}
+
+.teacher-bubble {
+    margin: 20px auto;
+    padding: 14px 20px;
+    border-radius: 18px;
+    font-size: 1.3rem;
+    font-weight: 600;
+    text-align: center;
+    max-width: 80%;
+    opacity: 1;
+    transition: opacity 0.4s ease;
+}
+
+/* Náhodné barvy */
+.bubble-green { background: #d4ffd4; }
+.bubble-blue  { background: #d9ecff; }
+.bubble-yellow{ background: #fff7c2; }
+.bubble-pink  { background: #ffd9e8; }
+.bubble-purple{ background: #f0d9ff; }
+
+#preStartBubble {
+    margin-bottom: 20px;
+}
+
+.info {
+   text-align: center;
+
+</style>
+</head>
+<body>
+
+<button id="menuTop" onclick="location.href='index.html'">🏠 Menu</button>
+<!-- Animované bubliny -->
+<div class="bubble" style="width:90px;height:90px;left:10%;top:70%;background:#ff9a9e;"></div>
+<div class="bubble" style="width:120px;height:120px;left:70%;top:20%;background:#fad0c4;"></div>
+<div class="bubble" style="width:70px;height:70px;left:50%;top:80%;background:#fbc2eb;"></div>
+<div class="bubble" style="width:100px;height:100px;left:20%;top:10%;background:#a1c4fd;"></div>
+
+<!-- KROK 1 -->
+<div class="card" id="step1">
+    <h1 class="title">⏱️ Matika na čas</h1>
+    <h2 class="title">1️⃣ Vyber obtížnost</h2>
+
+    <button class="btn" onclick="selectDifficulty(10)">0 – 10</button>
+    <button class="btn" onclick="selectDifficulty(20)">0 – 20</button>
+    <button class="btn" onclick="selectDifficulty(50)">0 – 50</button>
+    <button class="btn" onclick="selectDifficulty(100)">0 – 100</button>
+</div>
+
+<!-- KROK 2 -->
+<div class="card" id="step2" style="display:none;">
+    <h2 class="title">2️⃣ Vyber čas</h2>
+
+    <button class="btn" onclick="selectTime(30)">30 sekund</button>
+    <button class="btn" onclick="selectTime(60)">60 sekund</button>
+    <button class="btn" onclick="selectTime(120)">120 sekund</button>
+
+    <input id="customTime" type="number" placeholder="Vlastní čas (s) po napsání klikni na potrvrdit."style="width:66%;padding:10px;font-size:1.1rem;border-radius:10px;margin:10px auto;display:block;text-align:center;">
+
+    <button class="btn" onclick="selectCustomTime()">Potvrdit</button>
+    <button class="btn" onclick="goBackToStep1()">⬅️ Zpět na obtížnost</button>
+</div>
+
+<!-- KROK 3 -->
+<div class="card" id="step3" style="display:none;">
+    <h2 class="title">3️⃣ Vyber početní operace<br>(Nakombinuj si možnosti)</h2>
+
+    <div class="op-grid">
+       <label class="op-item"><input type="checkbox" class="pretty-check" id="opPlus" checked onchange="updateStartButtonState()"> ➕ Sčítání</label>
+       <label class="op-item"><input type="checkbox" class="pretty-check" id="opMinus" checked onchange="updateStartButtonState()"> ➖ Odčítání</label>
+       <label class="op-item"><input type="checkbox" class="pretty-check" id="opMul" onchange="updateStartButtonState()"> ✖️ Násobení</label>
+       <label class="op-item"><input type="checkbox" class="pretty-check" id="opDiv" onchange="updateStartButtonState()"> ➗ Dělení</label>
+    </div>
+ 	<div class="info">
+    <strong style="color:#c00;">UPOZORNĚNÍ</strong>
+    <br><br>
+
+    Po kliknutí na <strong style="color:#c00;">Start</strong> začne běžet čas.
+    Vždy si <strong style="color:#c00;">přečti příklad</strong>, napiš 
+    <strong style="color:#c00;">výsledek</strong> a stiskni 
+    <strong style="color:#c00;">Enter</strong>.
+    <br><br>
+
+    Po Enteru se tvoje odpověď uloží a hned se objeví 
+    <strong style="color:#c00;">nový příklad</strong>.
+    Pokračuj, dokud <strong style="color:#c00;">nevyprší čas</strong>.
+    <br><br>
+
+    Hodně štěstí! 💪
+</div>
+    		
+    <div id="preStartMessage" class="teacher-bubble"></div>
+
+    <button class="btn" id="startBtn" onclick="startGame()">Start!</button>
+    <button class="btn" onclick="goBackToStep2()">⬅️ Zpět na čas</button>
+</div>
+
+<!-- HRA -->
+<div class="card" id="game" style="display:none;">
+    <h2>Počítej co nejrychleji!</h2>
+
+    <div id="timer">⏳ Čas: 0 s</div>
+
+    <div class="example" id="example">?</div>
+
+    <input id="answer" type="text" inputmode="numeric" pattern="[0-9]*"
+       placeholder="Výsledek" autocomplete="off">
+
+    <button class="btn" onclick="stopGame()">Ukončit</button>
+</div>
+
+<!-- SOUHRN -->
+<div class="card" id="summary" style="display:none;">
+    <h1>📊 Výsledky</h1>
+
+    <div class="summary-item" id="sumTotal"></div>
+    <div class="summary-item" id="sumCorrect"></div>
+    <div class="summary-item" id="sumWrong"></div>
+    <div class="summary-item" id="sumPercent"></div>
+    <div class="summary-item" id="sumSpeed"></div>
+
+    <h3 style="margin-top:20px;">❌ Chybné příklady:</h3>
+    <ul id="wrongList" style="font-size:1.2rem;"></ul>
+
+    <button class="btn" onclick="location.href='matika-na-cas.html'">🔁 Hrát znovu</button>
+    <button class="btn" onclick="location.href='index.html'">⬅️ Zpět do menu</button>
+</div>
+
+<script>
+window.onload = updateStartButtonState;
+
+let maxNum = 10;
+let timeLimit = 30;
+let timeLeft = 0;
+let timerInterval;
+
+let correct = 0;
+let wrong = 0;
+let total = 0;
+
+let wrongExamples = [];
+
+let currentA = 0;
+let currentB = 0;
+let currentOp = "+";
+
+function updateStartButtonState() {
+    const plus = document.getElementById("opPlus").checked;
+    const minus = document.getElementById("opMinus").checked;
+    const mul = document.getElementById("opMul").checked;
+    const div = document.getElementById("opDiv").checked;
+
+    const startBtn = document.getElementById("startBtn");
+
+    if (!plus && !minus && !mul && !div) {
+        startBtn.disabled = true;
+        startBtn.style.opacity = 0.5;
+        startBtn.style.cursor = "not-allowed";
+    } else {
+        startBtn.disabled = false;
+        startBtn.style.opacity = 1;
+        startBtn.style.cursor = "pointer";
+    }
+}
+
+function typeWriter(element, text, speed = 50) {
+    element.innerText = "";
+    let i = 0;
+
+    function write() {
+        if (i < text.length) {
+            element.innerText += text.charAt(i);
+            i++;
+            setTimeout(write, speed);
+        }
+    }
+
+    write();
+}
+
+function randomBubbleColor() {
+    const colors = ["bubble-green", "bubble-blue", "bubble-yellow", "bubble-pink", "bubble-purple"];
+    return colors[Math.floor(Math.random() * colors.length)];
+}
+
+
+function showPreStartBubble() {
+    const bubble = document.getElementById("preStartMessage");
+
+    // náhodná hláška
+    const msgs = preStartMessages();
+    const text = msgs[Math.floor(Math.random() * msgs.length)];
+
+    // reset tříd
+    bubble.className = "teacher-bubble";
+
+    // náhodná barva
+    bubble.classList.add(randomBubbleColor());
+
+    // zobrazit bublinu
+    bubble.style.opacity = 1;
+
+    // typewriter efekt přes JS
+    typeWriter(bubble, text, 50);
+}
+
+function showPreStartMessage() {
+    const msgs = [
+        "Jdeme na to, bude to zábava!",
+        "Vyber si, co chceš trénovat!",
+        "Matika tě dneska nezaskočí!",
+        "Připravený? Tohle zvládneš levou zadní!",
+        "Tak jo, jdeme počítat jako profíci!"
+    ];
+
+    const msg = msgs[Math.floor(Math.random() * msgs.length)];
+    document.getElementById("preStartMessage").innerText = msg;
+}
+
+function goBackToStep1() {
+    document.getElementById("step2").style.display = "none";
+    document.getElementById("step1").style.display = "block";
+}
+
+function goBackToStep2() {
+    document.getElementById("step3").style.display = "none";
+    document.getElementById("step2").style.display = "block";
+}
+
+function selectDifficulty(n) {
+    maxNum = n;
+    document.getElementById("step1").style.display = "none";
+    document.getElementById("step2").style.display = "block";
+}
+
+function selectTime(t) {
+    timeLimit = t;
+    document.getElementById("step2").style.display = "none";
+    document.getElementById("step3").style.display = "block";
+document.getElementById("step3").style.display = "block";
+showPreStartMessage();
+
+}
+
+function selectCustomTime() {
+    let t = parseInt(document.getElementById("customTime").value);
+
+    if (isNaN(t) || t <= 0) return;
+
+    if (t > 300) {
+        alert("⚠️ 5 minut je maximum. Zadej prosím čas do 300 sekund.");
+        return;
+    }
+
+    timeLimit = t;
+    document.getElementById("step2").style.display = "none";
+    document.getElementById("step3").style.display = "block";
+document.getElementById("step3").style.display = "block";
+showPreStartMessage();
+
+}
+
+function startGame() {
+ 	const plus = document.getElementById("opPlus").checked;
+    const minus = document.getElementById("opMinus").checked;
+    const mul = document.getElementById("opMul").checked;
+    const div = document.getElementById("opDiv").checked;
+
+    if (!plus && !minus && !mul && !div) {
+        showPreStartMessage("Musíš vybrat alespoň jednu operaci!"); 
+        return;
+    }
+
+    document.getElementById("step3").style.display = "none";
+    document.getElementById("game").style.display = "block";
+
+    correct = 0;
+    wrong = 0;
+    total = 0;
+    wrongExamples = [];
+
+    timeLeft = timeLimit;
+    updateTimer();
+
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        updateTimer();
+        if (timeLeft <= 0) stopGame();
+    }, 1000);
+
+    newExample();
+
+    let ans = document.getElementById("answer");
+    ans.value = "";
+    ans.focus();
+
+    ans.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") checkAnswer();
+    });
+}
+
+function updateTimer() {
+    document.getElementById("timer").innerText = "⏳ Čas: " + timeLeft + " s";
+}
+
+function newExample() {
+    let ops = [];
+    if (document.getElementById("opPlus").checked) ops.push("+");
+    if (document.getElementById("opMinus").checked) ops.push("-");
+    if (document.getElementById("opMul").checked) ops.push("*");
+    if (document.getElementById("opDiv").checked) ops.push("/");
+
+    if (ops.length === 0) ops.push("+");
+
+    currentOp = ops[Math.floor(Math.random() * ops.length)];
+
+    currentA = Math.floor(Math.random() * (maxNum + 1));
+    currentB = Math.floor(Math.random() * (maxNum + 1));
+
+    if (currentOp === "/") {
+        currentB = Math.floor(Math.random() * maxNum) + 1;
+        currentA = currentB * Math.floor(Math.random() * maxNum);
+    }
+
+    document.getElementById("example").innerText = `${currentA} ${symbol(currentOp)} ${currentB} = ?`;
+}
+
+function symbol(op) {
+    return op === "*" ? "×" : op === "/" ? "÷" : op;
+}
+
+function checkAnswer() {
+    let ans = parseInt(document.getElementById("answer").value);
+
+    let correctResult =
+        currentOp === "+" ? currentA + currentB :
+        currentOp === "-" ? currentA - currentB :
+        currentOp === "*" ? currentA * currentB :
+        currentA / currentB;
+
+    if (ans === correctResult) {
+        correct++;
+    } else {
+        wrong++;
+        wrongExamples.push(`${currentA} ${symbol(currentOp)} ${currentB} = ${correctResult} (ty: ${ans})`);
+    }
+
+    total++;
+
+    document.getElementById("answer").value = "";
+    document.getElementById("answer").focus();
+
+    newExample();
+}
+
+function stopGame() {
+    clearInterval(timerInterval);
+
+    document.getElementById("game").style.display = "none";
+    document.getElementById("summary").style.display = "block";
+
+    document.getElementById("sumTotal").innerText = "Celkem příkladů: " + total;
+    document.getElementById("sumCorrect").innerText = "Správně: " + correct;
+    document.getElementById("sumWrong").innerText = "Špatně: " + wrong;
+
+    let percent = total > 0 ? Math.round((correct / total) * 100) : 0;
+    document.getElementById("sumPercent").innerText = "Úspěšnost: " + percent + "%";
+
+    let speed = Math.round((total / timeLimit) * 60);
+    document.getElementById("sumSpeed").innerText = "Rychlost: " + speed + " příkladů/min";
+
+    let list = document.getElementById("wrongList");
+    list.innerHTML = "";
+    wrongExamples.forEach(x => {
+        let li = document.createElement("li");
+        li.textContent = x;
+        list.appendChild(li);
+    });
+}
+</script>
+
+</body>
+</html>
