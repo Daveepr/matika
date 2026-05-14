@@ -239,6 +239,14 @@
     <button class="btn" onclick="selectDifficulty(20)">0 – 20</button>
     <button class="btn" onclick="selectDifficulty(50)">0 – 50</button>
     <button class="btn" onclick="selectDifficulty(100)">0 – 100</button>
+	<br> 
+	<div class="custom-range-box">
+		<p> Vyplň si vlastní rozsah hodnot, které mám využívat. </p>
+		<br>
+    <input id="rangeMin" type="number" min="0" max="100" placeholder="Od" class="rangeInput">
+<input id="rangeMax" type="number" min="0" max="100" placeholder="Do" class="rangeInput">
+    <button class="btn" onclick="selectCustomRange()">Potvrdit rozsah</button>
+</div>
 </div>
 
 <!-- KROK 2 -->
@@ -337,6 +345,43 @@ let wrongExamples = [];
 let currentA = 0;
 let currentB = 0;
 let currentOp = "+";
+
+function selectCustomRange() {
+    const min = parseInt(document.getElementById("rangeMin").value);
+    const max = parseInt(document.getElementById("rangeMax").value);
+
+    // 1) prázdné hodnoty
+    if (isNaN(min) || isNaN(max)) {
+        alert("Zadej obě hodnoty.");
+        return;
+    }
+
+    // 2) limity 0–100
+    if (min < 0 || max < 0) {
+        alert("Hodnoty musí být minimálně 0.");
+        return;
+    }
+
+    if (min > 100 || max > 100) {
+        alert("Maximální povolená hodnota je 100.");
+        return;
+    }
+
+    // 3) logika rozsahu
+    if (min > max) {
+        alert("Hodnota 'Od' musí být menší nebo rovna hodnotě 'Do'.");
+        return;
+    }
+
+    // 4) uložení
+    selectedMin = min;
+    selectedMax = max;
+
+    // 5) přechod na krok 2
+    document.getElementById("step1").style.display = "none";
+    document.getElementById("step2").style.display = "block";
+}
+
 
 function updateStartButtonState() {
     const plus = document.getElementById("opPlus").checked;
@@ -508,15 +553,29 @@ function newExample() {
 
     currentOp = ops[Math.floor(Math.random() * ops.length)];
 
-    currentA = Math.floor(Math.random() * (maxNum + 1));
-    currentB = Math.floor(Math.random() * (maxNum + 1));
+    // GENEROVÁNÍ ČÍSEL PODLE VLASTNÍHO ROZSAHU
+    currentA = Math.floor(Math.random() * (selectedMax - selectedMin + 1)) + selectedMin;
+    currentB = Math.floor(Math.random() * (selectedMax - selectedMin + 1)) + selectedMin;
 
+    // DĚLENÍ – MUSÍ BÝT CELOČÍSELNÉ
     if (currentOp === "/") {
-        currentB = Math.floor(Math.random() * maxNum) + 1;
-        currentA = currentB * Math.floor(Math.random() * maxNum);
+        // B nesmí být 0
+        currentB = Math.floor(Math.random() * (selectedMax - selectedMin)) + 1;
+
+        // multiplier může být i 0 → výsledek 0 je OK
+        let multiplier = Math.floor(Math.random() * (selectedMax - selectedMin + 1)) + selectedMin;
+
+        currentA = currentB * multiplier;
+
+        // A musí být v rozsahu
+        if (currentA < selectedMin || currentA > selectedMax) {
+            multiplier = Math.floor(Math.random() * 11); // 0–10 bezpečný fallback
+            currentA = currentB * multiplier;
+        }
     }
 
-    document.getElementById("example").innerText = `${currentA} ${symbol(currentOp)} ${currentB} = ?`;
+    document.getElementById("example").innerText =
+        `${currentA} ${symbol(currentOp)} ${currentB} = ?`;
 }
 
 function symbol(op) {
