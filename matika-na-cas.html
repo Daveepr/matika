@@ -273,7 +273,7 @@
     <button class="btn" onclick="selectDifficulty(100)">0 – 100</button>
 	<br> 
 	<div class="custom-range-box">
-    <p class="info">Vyplň si vlastní rozsah hodnot, které mám využívat.<br> A klikni na Potvrdit.</p>
+    <p class="info">Vyplň si vlastní rozsah hodnot, které mám využívat pro tvorbu příkladů.<br>Minimální rozestup mezi čísly je +7 (př. 3 a 10). " <br>A klikni na Potvrdit.</p>
 
     <div class="range-row">
         <input id="rangeMin" type="number" min="0" max="100" placeholder="Od" class="rangeInput">
@@ -423,14 +423,23 @@ function selectCustomRange() {
         alert(`Hodnoty jsou stejné (${min}). Rozsah musí být alespoň 7. Zadej například ${min} až ${min + 7}.`);
         return;
     }
+	// 4) minimální šířka rozsahu = 7
+	const needed = min + 7;
 
-    // 4) minimální šířka rozsahu = 7
-    if ((max - min) < 7) {
-        const needed = min + 7;
-        alert(`Hodnota ${max} je příliš blízko ${min}. Zadej minimálně ${needed}, aby to dávalo smysl.`);
-        return;
-    }
+	// speciální případ: doporučená hodnota přesahuje limit
+	if (needed > 100) {
+    alert(`Z hodnot ${min} a ${max} už nejde vytvořit smysluplný rozsah.
+Maximální povolená hodnota je 100, takže minimální rozdíl 7 nelze dodržet.
+Zadej prosím menší minimum nebo sniž maximum.`);
+    return;
+}
 
+	// běžná kontrola
+	if ((max - min) < 7) {
+    alert(`Hodnota ${max} je příliš blízko ${min}. Zadej minimálně ${needed}, aby to dávalo smysl.`);
+    return;
+}
+   
     // 5) uložení
     selectedMin = min;
     selectedMax = max;
