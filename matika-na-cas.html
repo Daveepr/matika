@@ -71,7 +71,6 @@
         border-radius: 18px;
         border: none;
         cursor: pointer;
-        background: #fff;
         color: #333;
         box-shadow: 0 4px 12px rgba(0,0,0,0.18);
         transition: 0.2s ease;
@@ -213,31 +212,38 @@
 #preStartBubble {
     margin-bottom: 20px;
 }
-
+/* INFO TEXT */
 .info {
-   text-align: center;
+    text-align: center;
+    font-size: 1.2rem;
+    line-height: 1.5;
+    margin-bottom: 10px;
+}
+
+/* CUSTOM RANGE BOX */
 .custom-range-box {
     margin-top: 20px;
     text-align: center;
 }
 
-.custom-range-box {
-    margin-top: 20px;
-    text-align: center;
+.range-row {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 15px;
 }
 
 .rangeInput {
     width: 45%;
     padding: 14px;
-    margin: 8px;
     font-size: 1.3rem;
     border-radius: 12px;
     border: 1px solid #ccc;
     text-align: center;
 }
 
-.custom-range-box .btn {
-    margin-top: 15px;
+/* RANGE BUTTON */
+.range-btn {
     padding: 14px 22px;
     font-size: 1.3rem;
     border-radius: 12px;
@@ -267,17 +273,16 @@
     <button class="btn" onclick="selectDifficulty(100)">0 – 100</button>
 	<br> 
 	<div class="custom-range-box">
-	<div class="info">
-		<p> Vyplň si vlastní rozsah hodnot, které mám využívat pro příklady. </p>
-		<br>
-		<p> A klikni na potvrdit.</p>
-		
-	</div>
-		
-    <input id="rangeMin" type="number" min="0" max="100" placeholder="Od" class="rangeInput">
-<input id="rangeMax" type="number" min="0" max="100" placeholder="Do" class="rangeInput">
-    <button class="btn" onclick="selectCustomRange()">Potvrdit rozsah</button>
+    <p class="info">Vyplň si vlastní rozsah hodnot, které mám využívat.<br> A klikni na Potvrdit.</p>
+
+    <div class="range-row">
+        <input id="rangeMin" type="number" min="0" max="100" placeholder="Od" class="rangeInput">
+        <input id="rangeMax" type="number" min="0" max="100" placeholder="Do" class="rangeInput">
+    </div>
+
+    <button class="btn range-btn" onclick="selectCustomRange()">Potvrdit</button>
 </div>
+
 </div>
 
 <!-- KROK 2 -->
