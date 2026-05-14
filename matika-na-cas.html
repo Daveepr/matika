@@ -383,16 +383,25 @@ let currentB = 0;
 let currentOp = "+";
 
 function selectCustomRange() {
-    const min = parseInt(document.getElementById("rangeMin").value);
-    const max = parseInt(document.getElementById("rangeMax").value);
+    const minRaw = document.getElementById("rangeMin").value.trim();
+    const maxRaw = document.getElementById("rangeMax").value.trim();
 
-    // 1) prázdné hodnoty
-    if (isNaN(min) || isNaN(max)) {
-        alert("Zadej obě hodnoty.");
+    // 0) kontrola nečíselných hodnot
+    if (minRaw === "" || maxRaw === "") {
+        alert("Hodnoty nesmí být prázdné.");
         return;
     }
 
-    // 2) limity 0–100
+    if (isNaN(minRaw) || isNaN(maxRaw)) {
+        alert(`Zadal jsi nečíselnou hodnotu. Zkontroluj prosím vstupy.`);
+        return;
+    }
+
+    // převod až po validaci
+    const min = parseInt(minRaw);
+    const max = parseInt(maxRaw);
+
+    // 1) limity 0–100
     if (min < 0 || max < 0) {
         alert("Hodnoty musí být minimálně 0.");
         return;
@@ -403,21 +412,33 @@ function selectCustomRange() {
         return;
     }
 
-    // 3) logika rozsahu
+    // 2) logika rozsahu
     if (min > max) {
-        alert("Hodnota 'Od' musí být menší nebo rovna hodnotě 'Do'.");
+        alert(`Hodnota ${min} je větší než ${max}. Oprav to prosím.`);
         return;
     }
 
-    // 4) uložení
+    // 3) speciální případ: min == max
+    if (min === max) {
+        alert(`Hodnoty jsou stejné (${min}). Rozsah musí být alespoň 7. Zadej například ${min} až ${min + 7}.`);
+        return;
+    }
+
+    // 4) minimální šířka rozsahu = 7
+    if ((max - min) < 7) {
+        const needed = min + 7;
+        alert(`Hodnota ${max} je příliš blízko ${min}. Zadej minimálně ${needed}, aby to dávalo smysl.`);
+        return;
+    }
+
+    // 5) uložení
     selectedMin = min;
     selectedMax = max;
 
-    // 5) přechod na krok 2
+    // 6) přechod na krok 2
     document.getElementById("step1").style.display = "none";
     document.getElementById("step2").style.display = "block";
 }
-
 
 function updateStartButtonState() {
     const plus = document.getElementById("opPlus").checked;
@@ -518,22 +539,46 @@ showPreStartMessage();
 }
 
 function selectCustomTime() {
-    let t = parseInt(document.getElementById("customTime").value);
+    const raw = document.getElementById("customTime").value.trim();
 
-    if (isNaN(t) || t <= 0) return;
+    // 1) prázdný vstup
+    if (raw === "") {
+        alert("Zadej čas v sekundách.");
+        return;
+    }
 
+    // 2) nečíselné hodnoty
+    if (isNaN(raw)) {
+        alert(`Hodnota "${raw}" není číslo. Zadej prosím platný počet sekund.`);
+        return;
+    }
+
+    // 3) převod až po validaci
+    const t = parseInt(raw);
+
+    // 4) minimální čas
+    if (t < 15) {
+        alert(`Čas ${t} sekund je příliš krátký. Minimální povolený čas je 15 sekund.`);
+        return;
+    }
+
+    // 5) maximální čas
     if (t > 300) {
         alert("⚠️ 5 minut je maximum. Zadej prosím čas do 300 sekund.");
         return;
     }
 
+    // 6) OK → uložit
     timeLimit = t;
+
+    // 7) přechod na další krok
     document.getElementById("step2").style.display = "none";
     document.getElementById("step3").style.display = "block";
-document.getElementById("step3").style.display = "block";
-showPreStartMessage();
 
+    // 8) motivace před startem
+    showPreStartMessage();
 }
+
 
 function startGame() {
  	const plus = document.getElementById("opPlus").checked;
