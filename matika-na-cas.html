@@ -585,11 +585,7 @@ function selectCustomTime() {
         alert("Zadej čas v sekundách.");
         return;
     }
-	// 2) povoleny jen číslice 0–9
-    if (!/^\d+$/.test(minRaw) || !/^\d+$/.test(maxRaw)) {
-        alert("Používej prosím jen číslice 0–9 bez mezer a dalších znaků.");
-        return;
-    }
+	
     // 2) nečíselné hodnoty
     if (isNaN(raw)) {
         alert(`Hodnota "${raw}" není číslo. Zadej prosím platný počet sekund.`);
