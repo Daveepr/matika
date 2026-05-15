@@ -907,6 +907,11 @@ function toggleWrong() {
     list.style.display = list.style.display === "none" ? "block" : "none";
 }
 
+function toggleOpStats() {
+    let box = document.getElementById("opStatsBox");
+    box.style.display = box.style.display === "none" ? "block" : "none";
+}
+	
 function stopGame() {
     clearInterval(timerInterval);
 
