@@ -248,6 +248,7 @@
     font-size: 1.3rem;
     border-radius: 12px;
 }
+
 .result-card {
     background: #fff;
     border-radius: 20px;
@@ -297,6 +298,21 @@
     text-align: left;
     font-size: 1.2rem;
     padding-left: 20px;
+}
+
+.op-stats {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f7f7f7;
+    border-radius: 12px;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+}
+
+.op-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 18px;
+    margin: 6px 0;
 }
 
 </style>
@@ -410,9 +426,19 @@
 
     <div id="motivationText" class="motivation"></div>
 
-    <button class="btn toggle-btn" onclick="toggleWrong()">📂 Zobrazit chybné příklady</button>
-
+    <button class="btn toggle-btn" onclick="toggleWrong()">📂 Chybné příklady</button>
     <ul id="wrongList" class="wrong-list" style="display:none;"></ul>
+
+    <button class="btn toggle-btn" onclick="toggleOpStats()">📊 Podrobné statistiky</button>
+
+    <div id="opStatsBox" class="op-stats" style="display:none;">
+        <h3>📘 Statistika podle operací</h3>
+
+        <div class="op-row"><span>➕ Sčítání:</span> <strong id="statPlus"></strong></div>
+        <div class="op-row"><span>➖ Odčítání:</span> <strong id="statMinus"></strong></div>
+        <div class="op-row"><span>✖️ Násobení:</span> <strong id="statMul"></strong></div>
+        <div class="op-row"><span>➗ Dělení:</span> <strong id="statDiv"></strong></div>
+    </div>
 
     <button class="btn" onclick="location.href='matika-na-cas.html'">🔁 Hrát znovu</button>
     <button class="btn" onclick="location.href='index.html'">⬅️ Zpět do menu</button>
@@ -420,6 +446,14 @@
 
 <script>
 window.onload = updateStartButtonState;
+
+let opStats = {
+    "+": { total: 0, correct: 0, wrong: 0 },
+    "-": { total: 0, correct: 0, wrong: 0 },
+    "*": { total: 0, correct: 0, wrong: 0 },
+    "/": { total: 0, correct: 0, wrong: 0 }
+};
+
 
 let maxNum = 10;
 let timeLimit = 30;
@@ -435,6 +469,89 @@ let wrongExamples = [];
 let currentA = 0;
 let currentB = 0;
 let currentOp = "+";
+
+let lastMsg = "";
+
+	// resume text - výsledek
+const msgHigh = [
+    "🌟 Wow! Tohle bylo fantastické!",
+    "🔥 Jsi rychlejší než blesk!",
+    "🎉 Skvělá práce, šampione!",
+    "💪 Takhle se to dělá!",
+    "🧠 Tvůj mozek dneska zářil!",
+    "🚀 Letíš jak raketa!",
+    "⭐ Jsi hvězda matematiky!",
+    "😎 Tohle byla čistá paráda!",
+    "🎯 Přesná trefa!",
+    "🏆 Dneska padaly rekordy!",
+    "✨ Tvoje čísla tancovala radostí!",
+    "🦊 Chytrý jak liška!",
+    "🐯 Silný jak tygr!",
+    "🌈 Barevná jízda úspěchu!",
+    "🍀 Máš talent, kámo!",
+    "🎈 Matematická párty!",
+    "🧩 Vše krásně zapadlo!",
+    "🚦 Jedeš jak formule!",
+    "🎇 Ohňostroj úspěchu!",
+    "🛼 Jedeš jak na bruslích!"
+];
+
+const msgMid = [
+    "🙂 Dobrá práce, jen tak dál!",
+    "💪 Máš na to, pokračuj!",
+    "🎯 Pěkný výkon, zkus to ještě jednou!",
+    "🌱 Rosteš každým příkladem!",
+    "🚀 Jdeš správným směrem!",
+    "🧠 Tvůj mozek maká!",
+    "🎉 Hezky! Je vidět snaha!",
+    "📈 Stoupáš nahoru!",
+    "🔧 Ještě trochu tréninku a budeš mistr!",
+    "🌞 Svítí na tebe pokrok!",
+    "🧩 Každý dílek se počítá!",
+    "🎈 Dobrá práce, pokračuj!",
+    "🐾 Krůček po krůčku vpřed!",
+    "⚡ Máš energii, využij ji!",
+    "🛠️ Buduješ skvělé základy!",
+    "🎵 Tvoje počítání má rytmus!",
+    "🌟 Jsi na dobré cestě!",
+    "📚 Trénink dělá mistra!",
+    "🚴 Jedeš pěkným tempem!",
+    "💡 Dobré nápady, jen tak dál!"
+];
+
+const msgLow = [
+    "💛 Nevadí, každý začíná někde.",
+    "🙂 Zkus to znovu, půjde to líp.",
+    "💪 Nevzdávej to, máš na víc!",
+    "🌱 Každý pokus tě posouvá dál.",
+    "🧠 Tvůj mozek se učí, to je důležité.",
+    "🚶 Pomalu, ale jistě vpřed.",
+    "🌈 Zkus to ještě jednou, dáš to.",
+    "🔄 Opakování je cesta k úspěchu.",
+    "📚 Trénink ti pomůže růst.",
+    "🧩 Každý příklad je nový krok.",
+    "💡 Učíš se, a to je skvělé.",
+    "🐾 Malé kroky vedou k velkým věcem.",
+    "🌤️ Zítra to půjde ještě líp.",
+    "🛠️ Stavíš pevné základy.",
+    "🎈 Důležité je nevzdat to.",
+    "🍀 Zkus to znovu, věřím ti.",
+    "🧸 Chyby jsou součást učení.",
+    "🚦 Zpomal, nadechni se a pokračuj.",
+    "🌻 Každý pokus tě zlepšuje.",
+    "💛 Jsi na cestě, pokračuj."
+];
+
+function getRandomMsg(arr) {
+    let m;
+    do {
+        m = arr[Math.floor(Math.random() * arr.length)];
+    } while (m === lastMsg);
+
+    lastMsg = m;
+    return m;
+}
+
 
 function selectCustomRange() {
     const minRaw = document.getElementById("rangeMin").value.trim();
@@ -756,7 +873,7 @@ function newExample() {
 function symbol(op) {
     return op === "*" ? "×" : op === "/" ? "÷" : op;
 }
-
+	
 function checkAnswer() {
     let ans = parseInt(document.getElementById("answer").value);
 
@@ -766,10 +883,14 @@ function checkAnswer() {
         currentOp === "*" ? currentA * currentB :
         currentA / currentB;
 
+    opStats[currentOp].total++;
+
     if (ans === correctResult) {
         correct++;
+        opStats[currentOp].correct++;
     } else {
         wrong++;
+        opStats[currentOp].wrong++;
         wrongExamples.push(`${currentA} ${symbol(currentOp)} ${currentB} = ${correctResult} (ty: ${ans})`);
     }
 
@@ -785,7 +906,6 @@ function toggleWrong() {
     let list = document.getElementById("wrongList");
     list.style.display = list.style.display === "none" ? "block" : "none";
 }
-
 
 function stopGame() {
     clearInterval(timerInterval);
@@ -803,17 +923,16 @@ function stopGame() {
     let speed = Math.round((total / timeLimit) * 60);
     document.getElementById("sumSpeed").innerText = speed + " / min";
 
-    // MOTIVAČNÍ TEXT
+    // MOTIVACE
     let msg = "";
-    if (percent === 100) msg = "🌟 Dokonalé! Jsi matematický génius!";
-    else if (percent >= 90) msg = "🔥 Úžasné! Tohle je skoro perfektní!";
-    else if (percent >= 75) msg = "🎉 Skvělá práce! Jen tak dál!";
-    else if (percent >= 50) msg = "🙂 Dobrá práce! Zkus to ještě jednou!";
-    else msg = "💪 Nevzdávej to! Příště to bude lepší!";
+	
+	if (percent >= 80) msg = msgHigh[Math.floor(Math.random() * msgHigh.length)];
+    else if (percent >= 40) msg = msgMid[Math.floor(Math.random() * msgMid.length)];
+    else msg = msgLow[Math.floor(Math.random() * msgLow.length)];
 
     document.getElementById("motivationText").innerText = msg;
 
-    // CHYBNÉ PŘÍKLADY
+    // CHYBY
     let list = document.getElementById("wrongList");
     list.innerHTML = "";
     wrongExamples.forEach(x => {
@@ -821,7 +940,26 @@ function stopGame() {
         li.textContent = x;
         list.appendChild(li);
     });
+
+    // STATISTIKY PODLE OPERACÍ
+    document.getElementById("statPlus").innerText =
+        `${opStats["+"].correct}/${opStats["+"].total} (${percentOf(opStats["+"])}%)`;
+
+    document.getElementById("statMinus").innerText =
+        `${opStats["-"].correct}/${opStats["-"].total} (${percentOf(opStats["-"])}%)`;
+
+    document.getElementById("statMul").innerText =
+        `${opStats["*"].correct}/${opStats["*"].total} (${percentOf(opStats["*"])}%)`;
+
+    document.getElementById("statDiv").innerText =
+        `${opStats["/"].correct}/${opStats["/"].total} (${percentOf(opStats["/"])}%)`;
 }
+
+function percentOf(obj) {
+    return obj.total > 0 ? Math.round((obj.correct / obj.total) * 100) : 0;
+}
+
+
 </script>
 
 </body>
