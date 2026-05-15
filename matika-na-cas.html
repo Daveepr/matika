@@ -563,7 +563,8 @@ function goBackToStep2() {
 }
 
 function selectDifficulty(n) {
-    maxNum = n;
+    selectedMin = 0;
+	selectedMax = n;
     document.getElementById("step1").style.display = "none";
     document.getElementById("step2").style.display = "block";
 }
