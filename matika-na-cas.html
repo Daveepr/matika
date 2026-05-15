@@ -426,8 +426,8 @@
 
     <div id="motivationText" class="motivation"></div>
 
-    <button class="btn toggle-btn" onclick="toggleWrong()">📂 Chybné příklady</button>
-    <ul id="wrongList" class="wrong-list" style="display:none;"></ul>
+    <button id="btnWrong" onclick="toggleWrong()">Chybné příklady</button>
+	<ul id="wrongList" class="wrong-list" style="display:none;"></ul>
 
     <button class="btn toggle-btn" onclick="toggleOpStats()">📊 Podrobné statistiky</button>
 
@@ -913,7 +913,13 @@ function toggleOpStats() {
 }
 	
 function stopGame() {
-    clearInterval(timerInterval);
+    let wrongBtn = document.getElementById("btnWrong");
+if (wrongExamples.length === 0) {
+    wrongBtn.style.display = "none";
+} else {
+    wrongBtn.style.display = "block";
+}
+	clearInterval(timerInterval);
 
     document.getElementById("game").style.display = "none";
     document.getElementById("summary").style.display = "block";
