@@ -248,6 +248,56 @@
     font-size: 1.3rem;
     border-radius: 12px;
 }
+.result-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 25px;
+    max-width: 380px;
+    margin: 20px auto;
+    box-shadow: 0 0 20px rgba(0,0,0,0.15);
+    animation: pop 0.4s ease;
+}
+
+@keyframes pop {
+    0% { transform: scale(0.7); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.result-title {
+    font-size: 28px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.result-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 20px;
+    margin: 8px 0;
+}
+
+.good { color: #2ecc71; }
+.bad { color: #e74c3c; }
+.percent { color: #3498db; }
+
+.motivation {
+    margin-top: 20px;
+    font-size: 22px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.toggle-btn {
+    margin-top: 20px;
+    background: #ffcc00;
+}
+
+.wrong-list {
+    margin-top: 15px;
+    text-align: left;
+    font-size: 1.2rem;
+    padding-left: 20px;
+}
 
 </style>
 </head>
@@ -348,17 +398,21 @@
 </div>
 
 <!-- SOUHRN -->
-<div class="card" id="summary" style="display:none;">
-    <h1>📊 Výsledky</h1>
+<div class="card result-card" id="summary" style="display:none;">
 
-    <div class="summary-item" id="sumTotal"></div>
-    <div class="summary-item" id="sumCorrect"></div>
-    <div class="summary-item" id="sumWrong"></div>
-    <div class="summary-item" id="sumPercent"></div>
-    <div class="summary-item" id="sumSpeed"></div>
+    <h1 class="result-title">📊 Výsledky</h1>
 
-    <h3 style="margin-top:20px;">❌ Chybné příklady:</h3>
-    <ul id="wrongList" style="font-size:1.2rem;"></ul>
+    <div class="result-row"><span>🧮 Celkem příkladů:</span> <strong id="sumTotal"></strong></div>
+    <div class="result-row"><span>✅ Správně:</span> <strong id="sumCorrect" class="good"></strong></div>
+    <div class="result-row"><span>❌ Špatně:</span> <strong id="sumWrong" class="bad"></strong></div>
+    <div class="result-row"><span>🎯 Úspěšnost:</span> <strong id="sumPercent" class="percent"></strong></div>
+    <div class="result-row"><span>⚡ Rychlost:</span> <strong id="sumSpeed"></strong></div>
+
+    <div id="motivationText" class="motivation"></div>
+
+    <button class="btn toggle-btn" onclick="toggleWrong()">📂 Zobrazit chybné příklady</button>
+
+    <ul id="wrongList" class="wrong-list" style="display:none;"></ul>
 
     <button class="btn" onclick="location.href='matika-na-cas.html'">🔁 Hrát znovu</button>
     <button class="btn" onclick="location.href='index.html'">⬅️ Zpět do menu</button>
@@ -727,22 +781,39 @@ function checkAnswer() {
     newExample();
 }
 
+function toggleWrong() {
+    let list = document.getElementById("wrongList");
+    list.style.display = list.style.display === "none" ? "block" : "none";
+}
+
+
 function stopGame() {
     clearInterval(timerInterval);
 
     document.getElementById("game").style.display = "none";
     document.getElementById("summary").style.display = "block";
 
-    document.getElementById("sumTotal").innerText = "Celkem příkladů: " + total;
-    document.getElementById("sumCorrect").innerText = "Správně: " + correct;
-    document.getElementById("sumWrong").innerText = "Špatně: " + wrong;
+    document.getElementById("sumTotal").innerText = total;
+    document.getElementById("sumCorrect").innerText = correct;
+    document.getElementById("sumWrong").innerText = wrong;
 
     let percent = total > 0 ? Math.round((correct / total) * 100) : 0;
-    document.getElementById("sumPercent").innerText = "Úspěšnost: " + percent + "%";
+    document.getElementById("sumPercent").innerText = percent + "%";
 
     let speed = Math.round((total / timeLimit) * 60);
-    document.getElementById("sumSpeed").innerText = "Rychlost: " + speed + " příkladů/min";
+    document.getElementById("sumSpeed").innerText = speed + " / min";
 
+    // MOTIVAČNÍ TEXT
+    let msg = "";
+    if (percent === 100) msg = "🌟 Dokonalé! Jsi matematický génius!";
+    else if (percent >= 90) msg = "🔥 Úžasné! Tohle je skoro perfektní!";
+    else if (percent >= 75) msg = "🎉 Skvělá práce! Jen tak dál!";
+    else if (percent >= 50) msg = "🙂 Dobrá práce! Zkus to ještě jednou!";
+    else msg = "💪 Nevzdávej to! Příště to bude lepší!";
+
+    document.getElementById("motivationText").innerText = msg;
+
+    // CHYBNÉ PŘÍKLADY
     let list = document.getElementById("wrongList");
     list.innerHTML = "";
     wrongExamples.forEach(x => {
