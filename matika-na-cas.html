@@ -407,6 +407,12 @@ function selectCustomRange() {
         return;
     }
 
+	// 2) povoleny jen číslice 0–9
+    if (!/^\d+$/.test(minRaw) || !/^\d+$/.test(maxRaw)) {
+        alert("Používej prosím jen číslice 0–9 bez mezer a dalších znaků.");
+        return;
+    }
+	
     if (min > 100 || max > 100) {
         alert("Maximální povolená hodnota je 100.");
         return;
@@ -510,15 +516,39 @@ function showPreStartBubble() {
 }
 
 function showPreStartMessage() {
-    const msgs = [
-        "Jdeme na to, bude to zábava!",
-        "Vyber si, co chceš trénovat!",
-        "Matika tě dneska nezaskočí!",
-        "Připravený? Tohle zvládneš levou zadní!",
-        "Tak jo, jdeme počítat jako profíci!"
-    ];
+ const msgs = [
+    "Jdeme na to, bude to zábava! 🎉",
+    "Mozek se ti už těší, až začne počítat! 🧠✨",
+    "Tohle bude jízda, připrav se! 🚀",
+    "Ukážeš číslům, kdo je tady šéf! 💪",
+    "Dneska budeš rychlejší než blesk! ⚡",
+    "Čísla se třesou, že je porazíš! 😄",
+    "Jsi připravený zazářit! ⭐",
+    "Tvůj mozek má dneska turbo! 🏎️💨",
+    "Tohle dáš levou zadní i poslepu! 😉",
+    "Dneska budeš počítací superhrdina! 🦸‍♂️",
+    "Čeká tě mise: porazit všechny příklady! 🎯",
+    "Matika se tě dneska bojí! 😎",
+    "Nadechni se… a ukaž, co v tobě je! 🌬️🔥",
+    "Tvůj mozek už startuje motory! 🛫",
+    "Dneska padne rekord, cítím to! 🏆",
+    "Připrav se, příklady nebudou mít šanci! 💥",
+    "Dneska budeš mistr světa v počítání! 🌍✨",
+    "Čísla se dneska nestačí divit! 🤯",
+    "Tvůj mozek je připravený na dobrodružství! 🗺️",
+    "Dneska to bude zábava, slibuju! 😁",
+    "Připrav se na matematickou výpravu! 🧭",
+    "Tvůj výkon dneska bude legendární! 🐉",
+    "Dneska budeš rychlejší než kalkulačka! 🔢⚡",
+    "Jsi připravený ukázat, jak jsi chytrý! 🧠🌟",
+    "Čísla dneska nemají šanci! 💣",
+    "Tvůj mozek je naladěný na vítězství! 🎶🏅",
+    "Dneska to bude tvůj velký den! 🌞",
+    "Startujeme za chvilku, připrav se! ⏳",
+    "Jdeme na to, šampione! 🥇"
+];
 
-    const msg = msgs[Math.floor(Math.random() * msgs.length)];
+	const msg = msgs[Math.floor(Math.random() * msgs.length)];
     document.getElementById("preStartMessage").innerText = msg;
 }
 
@@ -555,7 +585,11 @@ function selectCustomTime() {
         alert("Zadej čas v sekundách.");
         return;
     }
-
+	// 2) povoleny jen číslice 0–9
+    if (!/^\d+$/.test(minRaw) || !/^\d+$/.test(maxRaw)) {
+        alert("Používej prosím jen číslice 0–9 bez mezer a dalších znaků.");
+        return;
+    }
     // 2) nečíselné hodnoty
     if (isNaN(raw)) {
         alert(`Hodnota "${raw}" není číslo. Zadej prosím platný počet sekund.`);
