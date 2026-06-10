@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<title>Doplňovačka znamének</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+/* ===========================
+   ZÁKLADNÍ NASTAVENÍ STRÁNKY
+   =========================== */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Comic Sans MS", "Baloo 2", sans-serif;
+    background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* ===========================
+   ANIMOVANÉ POZADÍ (volitelné)
+   =========================== */
+.bubble {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.35;
+    animation: float 10s infinite ease-in-out;
+    filter: blur(2px);
+}
+@keyframes float {
+    0% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-30px) scale(1.1); }
+    100% { transform: translateY(0) scale(1); }
+}
+
+/* ===========================
+   KARTA
+   =========================== */
+.card {
+    border: 3px solid rgba(255,255,255,0.7);
+    width: 100%;
+    max-width: 650px;
+    background: rgba(255,255,255,0.9);
+    padding: 25px;
+    border-radius: 25px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    backdrop-filter: blur(6px);
+    animation: fadeIn 0.4s ease-out;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ===========================
+   NADPISY
+   =========================== */
+h1, h2 {
+    text-align: center;
+    color: #333;
+    text-shadow: 1px 1px 0 white;
+}
+h1 { font-size: clamp(20px, 2.5vw, 34px); }
+h2 { font-size: clamp(16px, 2vw, 26px); }
+.title { font-weight: bold; letter-spacing: 1px; }
+
+/* ===========================
+   TLAČÍTKA
+   =========================== */
+.btn {
+    display: block;
+    width: 100%;
+    background: linear-gradient(135deg, #ffffff, #f3f3f3);
+    color: #333;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+    padding: 14px 16px;
+    border-radius: 18px;
+    font-size: clamp(13px, 1.4vw, 22px);
+    -webkit-transition: 0.2s ease;
+    transition: 0.2s ease;
+    margin: 6px 0;
+}
+.btn:hover {
+    background: linear-gradient(135deg, #fff7d1, #ffe9a8);
+    -webkit-transform: translateY(-3px) scale(1.02);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+}
+.btn:active {
+    -webkit-transform: scale(0.97);
+    transform: scale(0.97);
+}
+.btn-small {
+    width: auto;
+    display: inline-block;
+    padding: 8px 14px;
+    font-size: clamp(12px, 1.2vw, 18px);
+    margin: 4px;
+}
+.btn-secondary {
+    background: #e7f0ff;
+}
+.btn-wrong {
+    background: #ff6666;
+    color: white;
+}
+.btn-wrong:hover {
+    background: #ff4d4d;
+}
+
+/* ===========================
+   INFO TEXT, BUBLINY
+   =========================== */
+.info {
+    text-align: center;
+    font-size: clamp(12px, 1.2vw, 16px);
+    line-height: 1.5;
+    margin-bottom: 10px;
+}
+.teacher-bubble {
+    margin: 16px auto;
+    padding: 12px 18px;
+    border-radius: 18px;
+    font-size: clamp(13px, 1.3vw, 18px);
+    font-weight: 600;
+    text-align: center;
+    max-width: 90%;
+}
+.bubble-green { background: #d4ffd4; }
+.bubble-blue  { background: #d9ecff; }
+.bubble-yellow{ background: #fff7c2; }
+.bubble-pink  { background: #ffd9e8; }
+.bubble-purple{ background: #f0d9ff; }
+
+/* ===========================
+   VSTUPY
+   =========================== */
+.range-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 10px 0 15px;
+    flex-wrap: wrap;
+}
+.rangeInput {
+    width: 45%;
+    padding: 10px;
+    font-size: clamp(13px, 1.3vw, 18px);
+    border-radius: 12px;
+    border: 1px solid #ccc;
+    text-align: center;
+}
+#customExamples {
+    width: 60%;
+    padding: 10px;
+    font-size: clamp(13px, 1.3vw, 18px);
+    border-radius: 12px;
+    border: 1px solid #ccc;
+    text-align: center;
+    margin: 10px auto 0;
+    display: block;
+}
+
+/* ===========================
+   DOPLŇOVAČKA – PŘÍKLAD
+   =========================== */
+.example-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 20px 0;
+    font-size: clamp(18px, 2.2vw, 30px);
+}
+.example-number {
+    min-width: 32px;
+    text-align: center;
+    font-weight: bold;
+}
+.op-input {
+    width: 40px;
+    height: 40px;
+    text-align: center;
+    font-size: clamp(18px, 2vw, 26px);
+    border-radius: 10px;
+    border: 2px solid #888;
+}
+
+/* ===========================
+   VÝSLEDKY
+   =========================== */
+.result-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 20px;
+    max-width: 480px;
+    margin: 15px auto;
+    box-shadow: 0 0 20px rgba(0,0,0,0.15);
+}
+.result-title {
+    font-size: clamp(18px, 2vw, 26px);
+    margin-bottom: 10px;
+    text-align: center;
+}
+.result-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: clamp(13px, 1.3vw, 18px);
+    margin: 4px 0;
+}
+.good { color: #2ecc71; }
+.bad { color: #e74c3c; }
+.percent { color: #3498db; }
+
+.wrong-list {
+    margin-top: 15px;
+    text-align: left;
+    font-size: clamp(13px, 1.3vw, 18px);
+    padding-left: 10px;
+}
+.wrong-item {
+    margin-bottom: 8px;
+}
+
+/* OPERAČNÍ STATISTIKY */
+.op-stats {
+    margin-top: 15px;
+    padding: 12px;
+    background: #f7f7f7;
+    border-radius: 12px;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+}
+.op-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: clamp(13px, 1.3vw, 18px);
+    margin: 3px 0;
+}
+
+/* MENU (zpět na začátek) */
+#menuTop {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    padding: 8px 14px;
+    font-size: clamp(12px, 1.2vw, 16px);
+    border-radius: 12px;
+    border: none;
+    background: rgba(255,255,255,0.9);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    cursor: pointer;
+    z-index: 999;
+    transition: 0.2s ease;
+}
+#menuTop:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+}
+
+/* Navigační řádek dole v kartě */
+.nav-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+}
+.nav-row .btn-small {
+    flex: 1 1 auto;
+    text-align: center;
+}
+</style>
+</head>
+<body>
+
+<!-- Modální okno -->
+
+<div id="modalOverlay" style="
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:rgba(0,0,0,0.45);
+    backdrop-filter:blur(3px);
+    z-index:9999;
+    justify-content:center;
+    align-items:center;
+">
+    <div id="modalBox" style="
+        background:white;
+        padding:0;
+        border-radius:18px;
+        max-width:340px;
+        width:90%;
+        text-align:center;
+        box-shadow:0 8px 25px rgba(0,0,0,0.25);
+        overflow:hidden;
+        animation:popIn 0.25s ease-out;
+    ">
+
+        <!-- Horní barevný pruh -->
+        <div style="
+            background:#ffe066;
+            padding:12px;
+            font-size:20px;
+            font-weight:700;
+            color:#333;
+            border-bottom:2px solid #f2c94c;
+        ">
+            UPOZORNĚNÍ
+        </div>
+
+        <!-- Text zprávy -->
+        <div id="modalMessage" style="
+            font-size:17px;
+            padding:20px 22px;
+            line-height:1.45;
+            color:#333;
+        "></div>
+
+        <!-- Tlačítko -->
+        <div style="padding:0 0 18px 0;">
+            <button onclick="closeModal()" style="
+                padding:10px 22px;
+                border:none;
+                border-radius:12px;
+                background:#ffd966;
+                font-size:16px;
+                cursor:pointer;
+                box-shadow:0 4px 10px rgba(0,0,0,0.2);
+            ">OK</button>
+        </div>
+
+    </div>
+</div>
+
+<style>
+@keyframes popIn {
+    0% { transform:scale(0.7); opacity:0; }
+    100% { transform:scale(1); opacity:1; }
+}
+</style>
+
+
+
+<!-- KROK 1 – OBTÍŽNOST -->
+<div class="card" id="step1">
+<button id="menuTop" onclick="location.href='index.html'">🏠 Menu</button>
+	<br> 
+
+    <h1>Doplňovačka znamének</h1>
+    <h2 class="title">1️⃣ Vyber obtížnost</h2>
+
+    <p class="info">
+        Zvol si rozsah čísel, se kterými budu pracovat.<br>
+        Jde o jednoduchou matiku bez závorek a mocnin.
+    </p>
+
+    <button class="btn" onclick="setDifficultyPreset(0,10)">Lehká (0 – 10)</button>
+    <button class="btn" onclick="setDifficultyPreset(0,20)">Střední (0 – 20)</button>
+    <button class="btn" onclick="setDifficultyPreset(0,50)">Těžká (0 – 50)</button>
+    <button class="btn" onclick="setDifficultyPreset(0,100)">Expert (0 – 100)</button>
+
+    <div class="teacher-bubble bubble-yellow">
+        Chceš vlastní rozsah? Vyplň ho níže a potvrď 👇
+    </div>
+
+    <div class="range-row">
+        <input id="customMin" type="number" class="rangeInput" placeholder="Od">
+        <input id="customMax" type="number" class="rangeInput" placeholder="Do">
+    </div>
+
+    <div class="nav-row">
+        <button class="btn-small btn-secondary btn" onclick="setCustomRange()">Potvrdit vlastní rozsah</button>
+    </div>
+</div>
+
+<!-- KROK 2 – POČET ČÍSEL -->
+<div class="card" id="step2" style="display:none;">
+    <h2 class="title">2️⃣ Kolik čísel bude v příkladu?</h2>
+    <p class="info">
+        Můžeš mít příklady se 2, 3 nebo 4 čísly.<br>
+        Mezi ně budeš doplňovat znaménka.
+    </p>
+
+    <button class="btn" onclick="setCountNumbers(2)">2 čísla</button>
+    <button class="btn" onclick="setCountNumbers(3)">3 čísla</button>
+    <button class="btn" onclick="setCountNumbers(4)">4 čísla</button>
+
+    <div class="teacher-bubble bubble-blue" id="step2Hint">
+        Vyber jednu možnost – po kliknutí tě posunu dál.
+    </div>
+
+    <div class="nav-row">
+        <button class="btn-small btn-secondary btn" onclick="backToStep1()">⬅️ Zpět</button>
+    </div>
+</div>
+
+<!-- KROK 3 – POČET PŘÍKLADŮ -->
+<div class="card" id="step3" style="display:none;">
+    <h2 class="title">3️⃣ Kolik příkladů chceš?</h2>
+    <p class="info">
+        Minimálně 5, maximálně 50 v řadě.<br>
+        Můžeš použít předvolby nebo zadat vlastní počet.
+    </p>
+
+    <button class="btn" onclick="setExamplesPreset(5)">5 příkladů</button>
+    <button class="btn" onclick="setExamplesPreset(10)">10 příkladů</button>
+    <button class="btn" onclick="setExamplesPreset(20)">20 příkladů</button>
+    <button class="btn" onclick="setExamplesPreset(40)">40 příkladů</button>
+    <button class="btn" onclick="setExamplesPreset(50)">50 příkladů</button>
+
+    <input id="customExamples" type="number" min="5" max="50" placeholder="Vlastní počet (5–50)">
+
+    <div class="teacher-bubble bubble-green" id="step3Hint">
+        Vyber předvolbu nebo zadej vlastní počet a klikni na Start.
+    </div>
+
+    <div class="nav-row">
+        <button class="btn-small btn-secondary btn" onclick="backToStep2()">⬅️ Zpět</button>
+        <button class="btn-small btn" onclick="confirmExamples()">Start ➜</button>
+    </div>
+</div>
+
+<!-- HRA – DOPLŇOVÁNÍ ZNAMÉNEK -->
+<div class="card" id="game" style="display:none;">
+    <h2 class="title">Doplň správná znaménka</h2>
+    <p class="info" id="progressInfo"></p>
+
+    <div class="teacher-bubble bubble-pink" id="gameHint">
+        Piš: +, -, x, / a já je změním na ➕ ➖ ✖️ ➗.<br>
+        Výsledek je daný, doplňuješ jen znaménka.
+    </div>
+
+    <div class="example-row" id="exampleRow"></div>
+
+    <div style="text-align:center; margin-top:10px;">
+        <button class="btn-small btn" onclick="checkCurrent()">Vyhodnotit</button>
+        <button class="btn-small btn-wrong" onclick="skipCurrent()">Přeskočit</button>
+    </div>
+
+    <div class="nav-row">
+        <button class="btn-small btn-secondary btn" onclick="backToStep3()">⬅️ Zpět na nastavení</button>
+    </div>
+</div>
+
+<!-- SOUHRN -->
+<div class="card" id="summary" style="display:none;">
+    <h2 class="title">Výsledky doplňovačky</h2>
+
+    <div class="result-card">
+        <div class="result-title">Shrnutí</div>
+        <div class="result-row">
+            <span>Počet příkladů:</span>
+            <span id="sumTotal"></span>
+        </div>
+        <div class="result-row good">
+            <span>Správně:</span>
+            <span id="sumCorrect"></span>
+        </div>
+        <div class="result-row bad">
+            <span>Špatně / přeskočeno:</span>
+            <span id="sumWrong"></span>
+        </div>
+        <div class="result-row percent">
+            <span>Úspěšnost:</span>
+            <span id="sumPercent"></span>
+        </div>
+    </div>
+
+    <div class="op-stats">
+        <div class="result-title" style="font-size:clamp(16px,1.8vw,22px);">Statistika znamének</div>
+        <div id="opStatsContainer"></div>
+    </div>
+
+    <div class="wrong-list" id="wrongList"></div>
+
+    <div style="text-align:center; margin-top:15px;">
+        <button class="btn" onclick="location.reload()">Zkusit znovu 🔁</button>
+    </div>
+</div>
+
+<script>
+let rangeMin = 0;
+let rangeMax = 10;
+let countNumbers = 2;
+let totalExamples = 5;
+
+let currentIndex = 0;
+let currentExample = null;
+let results = [];
+let opStats = {
+    "+": {correct:0, wrong:0},
+    "-": {correct:0, wrong:0},
+    "*": {correct:0, wrong:0},
+    "/": {correct:0, wrong:0}
+};
+
+function showModal(msg) {
+    document.getElementById("modalMessage").innerHTML = msg;
+    document.getElementById("modalOverlay").style.display = "flex";
+}
+
+function closeModal() {
+    document.getElementById("modalOverlay").style.display = "none";
+}
+
+
+/* ===========================
+   PRŮVODCE – KROK 1
+   =========================== */
+function setDifficultyPreset(min, max) {
+    rangeMin = min;
+    rangeMax = max;
+    document.getElementById("step1").style.display = "none";
+    document.getElementById("step2").style.display = "block";
+}
+function setCustomRange() {
+    const minRaw = document.getElementById("customMin").value.trim();
+    const maxRaw = document.getElementById("customMax").value.trim();
+
+    // 0) prázdné hodnoty
+    if (minRaw === "" || maxRaw === "") {
+        showModal("Hodnoty nesmí být prázdné.");
+        return;
+    }
+
+    // 1) pouze číslice 0–9
+    if (!/^\d+$/.test(minRaw) || !/^\d+$/.test(maxRaw)) {
+        showModal("Používej prosím jen číslice 0–9 bez mezer a dalších znaků.");
+        return;
+    }
+
+    // 2) nečíselné hodnoty (druhá vrstva ochrany)
+    if (isNaN(minRaw) || isNaN(maxRaw)) {
+        showModal("Zadal jsi nečíselnou hodnotu. Zkontroluj prosím vstupy.");
+        return;
+    }
+
+    // převod až po validaci
+    const min = parseInt(minRaw);
+    const max = parseInt(maxRaw);
+
+    // 3) limity 0–100
+    if (min < 0 || max < 0) {
+        showModal("Hodnoty musí být minimálně 0.");
+        return;
+    }
+
+    if (min > 100 || max > 100) {
+        showModal("Maximální povolená hodnota je 100.");
+        return;
+    }
+
+    // 4) logika rozsahu
+    if (min > max) {
+        showModal(`Hodnota <b>${min}</b> je větší než <b>${max}</b>. Oprav to prosím.`);
+        return;
+    }
+
+    // 5) speciální případ: min == max
+    if (min === max) {
+        showModal(`Hodnoty jsou stejné (<b>${min}</b>).<br>
+        Rozsah musí být alespoň 7.<br>
+        Zadej například <b>${min}</b> až <b>${min + 7}</b>.`);
+        return;
+    }
+
+    // 6) minimální šířka rozsahu = 7
+    const needed = min + 7;
+
+    // speciální případ: doporučená hodnota přesahuje limit
+    if (needed > 100) {
+        showModal(`Z hodnot <b>${min}</b> a <b>${max}</b> už nejde vytvořit smysluplný rozsah.<br>
+        Maximální povolená hodnota je 100, takže minimální rozdíl 7 nelze dodržet.<br>
+        Zadej prosím menší minimum nebo sniž maximum.`);
+        return;
+    }
+
+    // běžná kontrola
+    if ((max - min) < 7) {
+        showModal(`Hodnota <b>${max}</b> je příliš blízko <b>${min}</b>.<br>
+        Zadej minimálně <b>${needed}</b>, aby to dávalo smysl.`);
+        return;
+    }
+
+    // 7) OK → uložit
+    rangeMin = min;
+    rangeMax = max;
+
+    // 8) přechod na další krok
+    document.getElementById("step1").style.display = "none";
+    document.getElementById("step2").style.display = "block";
+}
+
+/* ===========================
+   PRŮVODCE – KROK 2
+   =========================== */
+function setCountNumbers(n) {
+    countNumbers = n;
+    document.getElementById("step2Hint").textContent =
+        `Vybráno: ${n} čísla. Pokračujeme na počet příkladů.`;
+    document.getElementById("step2").style.display = "none";
+    document.getElementById("step3").style.display = "block";
+}
+
+/* ===========================
+   PRŮVODCE – KROK 3
+   =========================== */
+function setExamplesPreset(n) {
+    totalExamples = n;
+    document.getElementById("step3Hint").textContent =
+        `Vybráno: ${n} příkladů. Klikni na Start.`;
+}
+function confirmExamples() {
+    const custom = document.getElementById("customExamples").value;
+    if (custom) {
+        const val = parseInt(custom, 10);
+        if (isNaN(val) || val < 5 || val > 50) {
+            alert("Zadej počet příkladů mezi 5 a 50.");
+            return;
+        }
+        totalExamples = val;
+    }
+    if (!totalExamples || totalExamples < 5 || totalExamples > 50) {
+        alert("Vyber nebo zadej počet příkladů (5–50).");
+        return;
+    }
+    document.getElementById("step3").style.display = "none";
+    document.getElementById("game").style.display = "block";
+    currentIndex = 0;
+    results = [];
+    resetOpStats();
+    nextExample();
+}
+
+/* ===========================
+   NÁVRATOVKY
+   =========================== */
+function backToStep1() {
+    document.getElementById("step2").style.display = "none";
+    document.getElementById("step1").style.display = "block";
+}
+function backToStep2() {
+    document.getElementById("step3").style.display = "none";
+    document.getElementById("step2").style.display = "block";
+}
+function backToStep3() {
+    document.getElementById("game").style.display = "none";
+    document.getElementById("step3").style.display = "block";
+}
+
+/* ===========================
+   GENERÁTOR PŘÍKLADŮ
+   =========================== */
+function resetOpStats() {
+    opStats["+"] = {correct:0, wrong:0};
+    opStats["-"] = {correct:0, wrong:0};
+    opStats["*"] = {correct:0, wrong:0};
+    opStats["/"] = {correct:0, wrong:0};
+}
+function randomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+function generateExample() {
+    let nums, ops, result;
+
+    while (true) {
+        nums = [];
+        for (let i = 0; i < countNumbers; i++) {
+            nums.push(randomInt(rangeMin, rangeMax));
+        }
+
+        ops = [];
+        let currentVal = nums[0];
+        let valid = true;
+
+        for (let i = 1; i < nums.length; i++) {
+            const next = nums[i];
+            const possibleOps = ["+","-","*","/"];
+            let op = possibleOps[randomInt(0, possibleOps.length - 1)];
+
+            // dělení musí být bezezbytku
+            if (op === "/") {
+                if (next === 0 || currentVal % next !== 0) {
+                    valid = false;
+                    break;
+                }
+            }
+
+            // aplikace operace
+            if (op === "+") currentVal += next;
+            else if (op === "-") currentVal -= next;
+            else if (op === "*") currentVal *= next;
+            else if (op === "/") currentVal /= next;
+
+            ops.push(op);
+        }
+
+        // výsledek musí být celé číslo
+        if (!valid || !Number.isInteger(currentVal)) continue;
+
+        result = currentVal;
+        break;
+    }
+
+    return { nums, ops, result };
+}
+
+/* ===========================
+   RENDER PŘÍKLADU
+   =========================== */
+function opToEmoji(op) {
+    switch(op) {
+        case "+": return "➕";
+        case "-": return "➖";
+        case "*": return "✖️";
+        case "x": return "✖️";
+        case "X": return "✖️";
+        case "/": return "➗";
+        default: return "";
+    }
+}
+function emojiToOp(val) {
+    if (val === "➕" || val === "+") return "+";
+    if (val === "➖" || val === "-") return "-";
+    if (val === "✖️" || val === "x" || val === "X" || val === "*") return "*";
+    if (val === "➗" || val === "/") return "/";
+    return null;
+}
+function nextExample() {
+    if (currentIndex >= totalExamples) {
+        finishGame();
+        return;
+    }
+    currentExample = generateExample();
+    renderExample();
+    document.getElementById("progressInfo").textContent =
+        `Příklad ${currentIndex + 1} / ${totalExamples}`;
+}
+function renderExample() {
+    const row = document.getElementById("exampleRow");
+    row.innerHTML = "";
+
+    const nums = currentExample.nums;
+
+    for (let i = 0; i < nums.length; i++) {
+        const spanNum = document.createElement("span");
+        spanNum.className = "example-number";
+        spanNum.textContent = nums[i];
+        row.appendChild(spanNum);
+
+        if (i < nums.length - 1) {
+            const inp = document.createElement("input");
+            inp.type = "text";
+            inp.maxLength = 1;
+            inp.className = "op-input";
+            inp.dataset.index = i;
+            inp.addEventListener("input", onOpInput);
+            row.appendChild(inp);
+        }
+    }
+
+    const eqSpan = document.createElement("span");
+    eqSpan.textContent = "=";
+    eqSpan.style.margin = "0 4px";
+    row.appendChild(eqSpan);
+
+    const resSpan = document.createElement("span");
+    resSpan.className = "example-number";
+    resSpan.textContent = currentExample.result;
+    row.appendChild(resSpan);
+}
+function onOpInput(e) {
+    let val = e.target.value.trim();
+    if (!val) return;
+    // vezmeme jen první znak
+    val = val[0];
+    const emoji = opToEmoji(val);
+    e.target.value = emoji;
+}
+
+/* ===========================
+   VYHODNOCENÍ
+   =========================== */
+function evaluateExpression(nums, ops) {
+    let val = nums[0];
+    for (let i = 1; i < nums.length; i++) {
+        const op = ops[i-1];
+        const n = nums[i];
+        if (op === "+") val = val + n;
+        else if (op === "-") val = val - n;
+        else if (op === "*") val = val * n;
+        else if (op === "/") val = val / n;
+    }
+    return val;
+}
+function checkCurrent() {
+    const opInputs = document.querySelectorAll(".op-input");
+    const userOps = [];
+    let allOpsFilled = true;
+
+    opInputs.forEach(inp => {
+        const op = emojiToOp(inp.value.trim());
+        if (!op) allOpsFilled = false;
+        userOps.push(op);
+    });
+
+    if (!allOpsFilled) {
+        alert("Doplň všechna znaménka.");
+        return;
+    }
+
+    const correctResult = currentExample.result;
+    const nums = currentExample.nums.slice();
+
+    const userVal = evaluateExpression(nums, userOps);
+
+    const isCorrect = (userVal === correctResult);
+
+    // statistika znamének – počítáme podle toho, co dítě napsalo
+    userOps.forEach(op => {
+        if (!opStats[op]) opStats[op] = {correct:0, wrong:0};
+        if (isCorrect) opStats[op].correct++;
+        else opStats[op].wrong++;
+    });
+
+    results.push({
+        nums,
+        userOps,
+        correctResult,
+        allCorrect: isCorrect
+    });
+
+    currentIndex++;
+    nextExample();
+}
+function skipCurrent() {
+    const nums = currentExample.nums.slice();
+    const correctResult = currentExample.result;
+
+    // přeskočeno – nehodnotíme znaménka, ale započítáme jako špatně
+    results.push({
+        nums,
+        userOps: [],
+        correctResult,
+        allCorrect: false,
+        skipped: true
+    });
+
+    currentIndex++;
+    nextExample();
+}
+
+/* ===========================
+   SOUHRN
+   =========================== */
+function finishGame() {
+    document.getElementById("game").style.display = "none";
+    document.getElementById("summary").style.display = "block";
+
+    const total = results.length;
+    const correct = results.filter(r => r.allCorrect).length;
+    const wrong = total - correct;
+    const percent = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+    document.getElementById("sumTotal").textContent = total;
+    document.getElementById("sumCorrect").textContent = correct;
+    document.getElementById("sumWrong").textContent = wrong;
+    document.getElementById("sumPercent").textContent = percent + " %";
+
+    const opStatsContainer = document.getElementById("opStatsContainer");
+    opStatsContainer.innerHTML = "";
+
+    const symbols = ["+","-","*","/"];
+    symbols.forEach(sym => {
+        const s = opStats[sym];
+        if (!s) return;
+        const totalSlots = s.correct + s.wrong;
+        if (totalSlots === 0) return;
+        const row = document.createElement("div");
+        row.className = "op-row";
+        const label = document.createElement("span");
+        label.textContent = opToEmoji(sym) + " (" + sym + ")";
+        const val = document.createElement("span");
+        const perc = Math.round((s.correct / totalSlots) * 100);
+        val.textContent = `${s.correct}/${totalSlots} správně (${perc} %)`;
+        row.appendChild(label);
+        row.appendChild(val);
+        opStatsContainer.appendChild(row);
+    });
+
+    const wrongList = document.getElementById("wrongList");
+    wrongList.innerHTML = "";
+    const wrongOnly = results.filter(r => !r.allCorrect);
+
+    if (wrongOnly.length === 0) {
+        wrongList.textContent = "Nemáš žádné chybné příklady. Skvělá práce! 🎉";
+        return;
+    }
+
+    const title = document.createElement("div");
+    title.className = "result-title";
+    title.style.fontSize = "clamp(16px,1.8vw,22px)";
+    title.textContent = "Chybné příklady:";
+    wrongList.appendChild(title);
+
+    wrongOnly.forEach(r => {
+        const div = document.createElement("div");
+        div.className = "wrong-item";
+
+        const correctExpr = buildExpressionString(r.nums, r.userOps.length ? r.userOps : null, r.correctResult);
+        const userExpr = r.userOps.length
+            ? buildExpressionString(r.nums, r.userOps, evaluateExpression(r.nums, r.userOps))
+            : "(přeskočeno)";
+
+        div.innerHTML =
+            `<span class="bad">Správně (výsledek):</span> ${r.correctResult}<br>` +
+            `<span class="good">Tvoje znaménka:</span> ${userExpr}`;
+        wrongList.appendChild(div);
+    });
+}
+function buildExpressionString(nums, ops, result) {
+    let s = "";
+    for (let i = 0; i < nums.length; i++) {
+        s += nums[i];
+        if (ops && ops[i]) {
+            s += " " + opToEmoji(ops[i]) + " ";
+        } else if (ops && i < nums.length - 1) {
+            s += " ? ";
+        }
+    }
+    if (result !== undefined && result !== null) {
+        s += " = " + result;
+    }
+    return s;
+}
+</script>
+</body>
+</html>

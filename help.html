@@ -3,173 +3,422 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nápověda – Hravá Matika</title>
+<title>Nápověda - Hravá Matika</title>
 
 <style>
-    body {
-        margin: 0;
-        padding: 0;
-        font-family: "Comic Sans MS", "Baloo 2", sans-serif;
-        background: linear-gradient(135deg, #d4fc79, #96e6a1);
-        min-height: 100vh;
-        overflow-x: hidden;
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        padding: 20px;
-        position: relative;
-    }
+:root {
+    --ink: #263044;
+    --muted: #62708a;
+    --panel: rgba(255,255,255,0.93);
+    --line: rgba(38,48,68,0.12);
+    --blue: #8fc9ff;
+    --green: #9df3c4;
+    --yellow: #ffe58a;
+    --coral: #ff9b8d;
+    --pink: #f9b7d7;
+}
 
-    /* Animované pozadí */
-    .bubble {
-        position: absolute;
-        border-radius: 50%;
-        opacity: 0.35;
-        animation: float 10s infinite ease-in-out;
-        filter: blur(2px);
-    }
+* { box-sizing: border-box; }
 
-    @keyframes float {
-        0% { transform: translateY(0) scale(1); }
-        50% { transform: translateY(-30px) scale(1.1); }
-        100% { transform: translateY(0) scale(1); }
-    }
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: "Comic Sans MS", "Baloo 2", system-ui, sans-serif;
+    color: var(--ink);
+    background:
+        radial-gradient(circle at 10% 18%, rgba(255,229,138,0.72), transparent 21rem),
+        radial-gradient(circle at 86% 12%, rgba(157,243,196,0.62), transparent 19rem),
+        radial-gradient(circle at 50% 95%, rgba(249,183,215,0.48), transparent 24rem),
+        linear-gradient(135deg, #dff2ff, #f7fbff 48%, #eafff3);
+    padding: 18px;
+    overflow-x: hidden;
+}
 
-    .container {
-        width: 100%;
-        max-width: 700px;
-        background: rgba(255,255,255,0.9);
-        padding: 25px;
-        border-radius: 25px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.25);
-        backdrop-filter: blur(6px);
-        animation: fadeIn 0.7s ease-out;
-    }
+.bubble {
+    position: fixed;
+    border-radius: 50%;
+    opacity: 0.26;
+    filter: blur(1px);
+    animation: float 11s ease-in-out infinite;
+    pointer-events: none;
+}
 
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to   { opacity: 1; transform: translateY(0); }
-    }
+.bubble.one { width: 92px; height: 92px; left: 8%; top: 70%; background: var(--coral); }
+.bubble.two { width: 126px; height: 126px; right: 8%; top: 16%; background: var(--green); animation-delay: -3s; }
+.bubble.three { width: 74px; height: 74px; left: 47%; bottom: 7%; background: var(--yellow); animation-delay: -6s; }
 
-    h1 {
-        text-align: center;
-        font-size: 2.4rem;
-        margin-bottom: 20px;
-        color: #333;
-        text-shadow: 1px 1px 0 white;
-    }
+@keyframes float {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-26px) scale(1.07); }
+}
 
-    h2 {
-        margin-top: 25px;
-        font-size: 1.8rem;
-        color: #444;
-    }
+.shell {
+    width: min(1060px, 100%);
+    margin: 0 auto;
+}
 
-    p, li {
-        font-size: 1.2rem;
-        line-height: 1.55;
-        color: #333;
-    }
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+}
 
-    ul {
-        padding-left: 20px;
-    }
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 900;
+    font-size: clamp(1.25rem, 3vw, 2rem);
+}
 
-    .back-btn {
-        display: block;
-        margin: 30px auto 0;
-        padding: 15px 25px;
-        font-size: 1.3rem;
-        border-radius: 18px;
-        border: none;
-        background: #fff;
-        cursor: pointer;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        transition: 0.2s ease;
-    }
+.brand-mark {
+    width: 46px;
+    height: 46px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 8px 22px rgba(38,48,68,0.15);
+}
 
-    .back-btn:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 6px 16px rgba(0,0,0,0.25);
-    }
+.menu-link {
+    color: var(--ink);
+    font: inherit;
+    font-weight: 800;
+    text-decoration: none;
+    white-space: nowrap;
+    border-radius: 16px;
+    background: #fff;
+    padding: 12px 16px;
+    box-shadow: 0 8px 18px rgba(38,48,68,0.14);
+    transition: transform .16s ease, box-shadow .16s ease;
+}
 
+.menu-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(38,48,68,0.18);
+}
+
+.hero, .section, .mode-card {
+    background: var(--panel);
+    border: 2px solid rgba(255,255,255,0.74);
+    border-radius: 8px;
+    box-shadow: 0 18px 44px rgba(38,48,68,0.16);
+    backdrop-filter: blur(8px);
+}
+
+.hero {
+    padding: clamp(20px, 4vw, 34px);
+    margin-bottom: 14px;
+}
+
+.hero h1 {
+    margin: 0 0 10px;
+    font-size: clamp(2rem, 6vw, 4rem);
+    line-height: 1.05;
+}
+
+.lead {
+    max-width: 780px;
+    margin: 0;
+    color: var(--muted);
+    font-size: clamp(1.05rem, 2.2vw, 1.25rem);
+    line-height: 1.55;
+}
+
+.quick-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.quick-item {
+    background: #fff;
+    border: 2px solid var(--line);
+    border-radius: 8px;
+    padding: 14px;
+}
+
+.quick-item strong {
+    display: block;
+    font-size: 1.08rem;
+    margin-bottom: 5px;
+}
+
+.quick-item span {
+    color: var(--muted);
+    line-height: 1.4;
+}
+
+.section {
+    padding: clamp(16px, 3vw, 26px);
+    margin: 14px 0;
+}
+
+h2, h3, p { margin-top: 0; }
+h2 {
+    font-size: clamp(1.45rem, 3.5vw, 2.1rem);
+    margin-bottom: 10px;
+}
+h3 {
+    font-size: clamp(1.2rem, 2.6vw, 1.55rem);
+    margin-bottom: 8px;
+}
+
+p, li {
+    font-size: 1.05rem;
+    line-height: 1.55;
+}
+
+ul, ol {
+    margin: 10px 0 0;
+    padding-left: 24px;
+}
+
+li + li { margin-top: 6px; }
+
+.mode-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.mode-card {
+    padding: 18px;
+    box-shadow: 0 12px 28px rgba(38,48,68,0.12);
+}
+
+.tag {
+    display: inline-block;
+    border-radius: 999px;
+    padding: 6px 10px;
+    margin-bottom: 12px;
+    background: #eef7ff;
+    color: #315d8e;
+    font-size: .92rem;
+    font-weight: 900;
+}
+
+.tag.green { background: #e7fff0; color: #28734b; }
+.tag.yellow { background: #fff7cf; color: #7a5a00; }
+
+.note {
+    margin-top: 14px;
+    padding: 14px 16px;
+    border-radius: 8px;
+    background: #fff8d7;
+    border: 2px solid rgba(122,90,0,0.12);
+    color: #604800;
+    font-weight: 800;
+}
+
+.two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.soft-box {
+    background: #fff;
+    border: 2px solid var(--line);
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.footer-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.btn {
+    display: grid;
+    place-items: center;
+    min-height: 54px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    border: 0;
+    color: var(--ink);
+    background: #fff;
+    text-decoration: none;
+    font: inherit;
+    font-weight: 900;
+    box-shadow: 0 8px 18px rgba(38,48,68,0.14);
+    transition: transform .16s ease, box-shadow .16s ease;
+}
+
+.btn.primary { background: linear-gradient(135deg, #ffe36c, #ffb45f); }
+.btn:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(38,48,68,0.18); }
+
+@media (max-width: 880px) {
+    .quick-grid, .mode-grid, .two-col { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 560px) {
+    body { padding: 12px; }
+    .topbar { align-items: flex-start; }
+    .brand-mark { width: 42px; height: 42px; }
+    .menu-link { padding: 10px 12px; }
+    .footer-actions { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 
 <body>
+<div class="bubble one"></div>
+<div class="bubble two"></div>
+<div class="bubble three"></div>
 
-<!-- Animované bubliny -->
-<div class="bubble" style="width:90px;height:90px;left:10%;top:70%;background:#a1c4fd;"></div>
-<div class="bubble" style="width:120px;height:120px;left:70%;top:20%;background:#fbc2eb;"></div>
-<div class="bubble" style="width:70px;height:70px;left:50%;top:80%;background:#ff9a9e;"></div>
-<div class="bubble" style="width:100px;height:100px;left:20%;top:10%;background:#fad0c4;"></div>
+<main class="shell">
+    <div class="topbar">
+        <div class="brand"><span class="brand-mark">?</span><span>Nápověda</span></div>
+        <a class="menu-link" href="index.html">Menu</a>
+    </div>
 
-<div class="container">
-    <h1>❓ Nápověda</h1>
+    <section class="hero">
+        <h1>Jak používat Hravou Matiku</h1>
+        <p class="lead">
+            Hravá Matika je jednoduchý trénink počítání pro děti. Každý režim vede dítě krok za krokem:
+            nejdřív se nastaví rozsah čísel a potom se počítá, kreslí nebo doplňuje. Stránka je připravená
+            pro počítač, tablet i mobil.
+        </p>
 
-    <h2>🎲 Co je Hravá Matika?</h2>
-    <p>
-        Hravá Matika je jednoduchá, zábavná a hravá aplikace pro děti, která pomáhá trénovat matematiku
-        pomocí kreslení, rychlých příkladů a logických úloh. Vše je navrženo tak, aby to bylo intuitivní,
-        přehledné a motivující.
-    </p>
+        <div class="quick-grid">
+            <div class="quick-item">
+                <strong>1. Vyber hru</strong>
+                <span>V menu zvol kreslení, počítání na čas nebo doplňování znamének.</span>
+            </div>
+            <div class="quick-item">
+                <strong>2. Nastav úroveň</strong>
+                <span>Vyber rozsah 0-10, 0-20, 0-50, 0-100 nebo napiš vlastní hodnoty.</span>
+            </div>
+            <div class="quick-item">
+                <strong>3. Počítej v klidu</strong>
+                <span>Chyba není problém. Na konci uvidíš výsledky a příklady, které stojí za zopakování.</span>
+            </div>
+        </div>
+    </section>
 
-    <h2>✏️ Hravá Matika (kreslení)</h2>
-    <p>
-        V tomto režimu dítě kreslí číslice a aplikace je rozpoznává.  
-        Ideální pro trénink psaní čísel a jednoduchých příkladů.
-    </p>
-    <ul>
-        <li>Vyber obtížnost</li>
-        <li>Kresli číslice prstem nebo myší</li>
-        <li>Aplikace vyhodnotí správnost</li>
-    </ul>
+    <section class="section">
+        <h2>Herní režimy</h2>
+        <div class="mode-grid">
+            <article class="mode-card">
+                <span class="tag green">Kreslení na tabuli</span>
+                <h3>Hravá matika</h3>
+                <p>Dítě řeší příklad a výsledek píše myší nebo prstem na černou tabuli. Aplikace se pokusí číslo přečíst a vyhodnotit.</p>
+                <ol>
+                    <li>Vyber rozsah čísel.</li>
+                    <li>Zvol počet příkladů.</li>
+                    <li>Zaškrtni operace: sčítání, odčítání, násobení nebo dělení.</li>
+                    <li>Napiš výsledek na tabuli a klikni na Vyhodnotit.</li>
+                </ol>
+                <p class="note">Tip: piš velké a jednoduché číslice doprostřed tabule. Rozpoznávání funguje lépe, když je číslo výrazné.</p>
+            </article>
 
-    <h2>⏱️ Matika na čas</h2>
-    <p>
-        Rychlý trénink počítání.  
-        Cílem je vyřešit co nejvíce příkladů v daném čase.
-    </p>
-    <ul>
-        <li>Vyber obtížnost (0–10, 0–20, 0–50, 0–100)</li>
-        <li>Vyber čas (30–120 sekund)</li>
-        <li>Po stisku Enter se příklad vyhodnotí a zobrazí nový</li>
-        <li>Na konci uvidíš souhrn výsledků</li>
-    </ul>
+            <article class="mode-card">
+                <span class="tag">Rychlost a soustředění</span>
+                <h3>Matika na čas</h3>
+                <p>Krátký svižný trénink, kde jde o co nejvíce správných odpovědí v nastaveném čase.</p>
+                <ol>
+                    <li>Vyber rozsah čísel nebo vlastní rozsah.</li>
+                    <li>Nastav čas: 30, 60, 120 sekund nebo vlastní čas.</li>
+                    <li>Vyber početní operace.</li>
+                    <li>Napiš výsledek do políčka a potvrď klávesou Enter.</li>
+                </ol>
+                <p class="note">Po každém Enteru se odpověď uloží a hned se ukáže nový příklad. Čas běží až po kliknutí na Start.</p>
+            </article>
 
-    <h2>➕➖ Doplň znaménko</h2>
-    <p>
-        Logická hra, kde dítě doplňuje správné matematické operátory.  
-        Například:
-    </p>
-    <ul>
-        <li><strong>1 ? 3 = 4</strong> → správně je <strong>+</strong></li>
-        <li><strong>5 ? 2 = 3</strong> → správně je <strong>-</strong></li>
-    </ul>
+            <article class="mode-card">
+                <span class="tag yellow">Logika znamének</span>
+                <h3>Doplň znaménko</h3>
+                <p>Tady je výsledek už daný. Úkolem je doplnit mezi čísla taková znaménka, aby celý příklad vyšel.</p>
+                <ol>
+                    <li>Vyber obtížnost nebo vlastní rozsah.</li>
+                    <li>Zvol, zda bude příklad ze 2, 3 nebo 4 čísel.</li>
+                    <li>Nastav počet příkladů od 5 do 50.</li>
+                    <li>Piš znaménka +, -, x nebo / a klikni na Vyhodnotit.</li>
+                </ol>
+                <p class="note">Příklad: 1 ? 3 = 4 vyřeší znaménko +. U delších příkladů se počítá zleva doprava.</p>
+            </article>
+        </div>
+    </section>
 
-    <h2>📱 Podpora mobilu a tabletu</h2>
-    <p>
-        Celá aplikace je navržena tak, aby fungovala na:
-    </p>
-    <ul>
-        <li>mobilních telefonech</li>
-        <li>tabletech</li>
-        <li>noteboocích</li>
-        <li>dotykových zařízeních</li>
-    </ul>
+    <section class="section">
+        <h2>Co znamenají nastavení</h2>
+        <div class="two-col">
+            <div class="soft-box">
+                <h3>Rozsah čísel</h3>
+                <p>Rozsah určuje, z jakých čísel se budou příklady skládat. Menší rozsah je vhodný na začátek, větší rozsah přidá náročnost.</p>
+                <ul>
+                    <li>0-10: první počítání a jistota v základech.</li>
+                    <li>0-20: běžný trénink s trochu většími čísly.</li>
+                    <li>0-50 a 0-100: delší počítání a větší výzva.</li>
+                    <li>Vlastní rozsah musí mít dostatečný odstup, aby šly tvořit různé příklady.</li>
+                </ul>
+            </div>
+            <div class="soft-box">
+                <h3>Početní operace</h3>
+                <p>Operace můžeš kombinovat podle toho, co dítě právě procvičuje. Když není potřeba násobení nebo dělení, nech je vypnuté.</p>
+                <ul>
+                    <li>Sčítání a odčítání jsou zapnuté jako základní volba.</li>
+                    <li>Násobení přidává větší skoky mezi čísly.</li>
+                    <li>Dělení se snaží tvořit příklady s celým výsledkem.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
 
-    <h2>ℹ️ Tipy pro rodiče</h2>
-    <ul>
-        <li>Krátké, ale časté tréninky jsou nejefektivnější</li>
-        <li>Chval dítě za snahu, ne za výsledek</li>
-        <li>Střídej režimy – kreslení, čas, logiku</li>
-        <li>Nech dítě objevovat vlastní tempo</li>
-    </ul>
+    <section class="section">
+        <h2>Výsledky a opakování</h2>
+        <p>
+            Po dokončení hry aplikace ukáže počet příkladů, správné a chybné odpovědi, úspěšnost a podle režimu i rychlost
+            nebo statistiku podle operací. Chybné příklady nejsou známka neúspěchu, ale dobrý seznam toho, co si dát příště znovu.
+        </p>
+        <p>
+            U dětí často funguje lépe krátké opakování než dlouhé sezení. Klidně stačí pár minut, ale pravidelně.
+        </p>
+    </section>
 
-    <button class="back-btn" onclick="location.href='index.html'">
-        ⬅️ Zpět do menu
-    </button>
-</div>
+    <section class="section">
+        <h2>Tipy pro rodiče</h2>
+        <div class="two-col">
+            <div class="soft-box">
+                <h3>Když to jde dobře</h3>
+                <ul>
+                    <li>Zvyšte rozsah čísel nebo přidejte další operaci.</li>
+                    <li>V režimu na čas zkuste kratší limit a sledujte rychlost.</li>
+                    <li>Střídejte režimy, aby trénink nepůsobil pořád stejně.</li>
+                </ul>
+            </div>
+            <div class="soft-box">
+                <h3>Když to drhne</h3>
+                <ul>
+                    <li>Vraťte se na menší rozsah a méně operací.</li>
+                    <li>Po chybě nechte dítě vysvětlit postup nahlas.</li>
+                    <li>Chvalte snahu, čitelné psaní a klidné přemýšlení, ne jen výsledek.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
 
+    <section class="section">
+        <h2>Technické poznámky</h2>
+        <ul>
+            <li>Režim Hravá matika používá rozpoznávání ručně psaných číslic. Pro vyhodnocení tabule je potřeba připojení k internetu, protože stránka načítá knihovnu Tesseract.js z CDN.</li>
+            <li>Na telefonu a tabletu je nejlepší psát prstem přímo na tabuli. Na počítači stačí myš.</li>
+            <li>Když se rozpoznávání splete, vymaž tabuli a napiš číslo větší, jednodušší a více doprostřed.</li>
+            <li>V ostatních režimech se odpovědi zadávají klávesnicí, takže fungují i bez kreslení.</li>
+        </ul>
+
+        <div class="footer-actions">
+            <a class="btn primary" href="index.html">Zpět do menu</a>
+            <a class="btn" href="hrava-matika.html">Začít kreslením</a>
+        </div>
+    </section>
+</main>
 </body>
 </html>

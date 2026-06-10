@@ -334,6 +334,75 @@
 </head>
 <body>
 
+<!-- modální okno -->
+
+<div id="modalOverlay" style="
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:rgba(0,0,0,0.45);
+    backdrop-filter:blur(3px);
+    z-index:9999;
+    justify-content:center;
+    align-items:center;
+">
+    <div id="modalBox" style="
+        background:white;
+        padding:0;
+        border-radius:18px;
+        max-width:340px;
+        width:90%;
+        text-align:center;
+        box-shadow:0 8px 25px rgba(0,0,0,0.25);
+        overflow:hidden;
+        animation:popIn 0.25s ease-out;
+    ">
+
+        <!-- Horní barevný pruh -->
+        <div style="
+            background:#ffe066;
+            padding:12px;
+            font-size:20px;
+            font-weight:700;
+            color:#333;
+            border-bottom:2px solid #f2c94c;
+        ">
+            UPOZORNĚNÍ
+        </div>
+
+        <!-- Text zprávy -->
+        <div id="modalMessage" style="
+            font-size:17px;
+            padding:20px 22px;
+            line-height:1.45;
+            color:#333;
+        "></div>
+
+        <!-- Tlačítko -->
+        <div style="padding:0 0 18px 0;">
+            <button onclick="closeModal()" style="
+                padding:10px 22px;
+                border:none;
+                border-radius:12px;
+                background:#ffd966;
+                font-size:16px;
+                cursor:pointer;
+                box-shadow:0 4px 10px rgba(0,0,0,0.2);
+            ">OK</button>
+        </div>
+
+    </div>
+</div>
+
+<style>
+@keyframes popIn {
+    0% { transform:scale(0.7); opacity:0; }
+    100% { transform:scale(1); opacity:1; }
+}
+</style>
+
+
 <!-- Animované bubliny -->
 <div class="bubble" style="width:90px;height:90px;left:10%;top:70%;background:#ff9a9e;"></div>
 <div class="bubble" style="width:120px;height:120px;left:70%;top:20%;background:#fad0c4;"></div>
@@ -354,7 +423,7 @@
     <button class="btn" onclick="selectDifficulty(100)">0 – 100</button>
 	<br> 
 	<div class="custom-range-box">
-    <p class="info">Vyplň si vlastní rozsah hodnot, které mám využívat pro tvorbu příkladů.<br>Minimální rozestup mezi čísly je +7 (př. 3 a 10). " <br>A klikni na Potvrdit.</p>
+    <p class="info">Vyplň si vlastní rozsah hodnot, které mám využívat pro tvorbu příkladů.<br>Minimální rozestup mezi čísly je +7 (př. 3 a 10).<br>A klikni na Potvrdit.</p>
 
     <div class="range-row">
         <input id="rangeMin" type="number" min="0" max="100" placeholder="Od" class="rangeInput">
@@ -487,6 +556,16 @@ let currentOp = "+";
 
 let lastMsg = "";
 
+function showModal(msg) {
+    document.getElementById("modalMessage").innerHTML = msg;
+    document.getElementById("modalOverlay").style.display = "flex";
+}
+
+function closeModal() {
+    document.getElementById("modalOverlay").style.display = "none";
+}
+
+
 	// resume text - výsledek
 const msgHigh = [
     "🌟 Wow! Tohle bylo fantastické!",
@@ -572,14 +651,21 @@ function selectCustomRange() {
     const minRaw = document.getElementById("rangeMin").value.trim();
     const maxRaw = document.getElementById("rangeMax").value.trim();
 
-    // 0) kontrola nečíselných hodnot
+    // 0) prázdné hodnoty
     if (minRaw === "" || maxRaw === "") {
-        alert("Hodnoty nesmí být prázdné.");
+        showModal("Hodnoty nesmí být prázdné.");
         return;
     }
 
+    // 1) pouze číslice 0–9
+    if (!/^\d+$/.test(minRaw) || !/^\d+$/.test(maxRaw)) {
+        showModal("Používej prosím jen číslice 0–9 bez mezer a dalších znaků.");
+        return;
+    }
+
+    // 2) nečíselné hodnoty (druhá vrstva ochrany)
     if (isNaN(minRaw) || isNaN(maxRaw)) {
-        alert(`Zadal jsi nečíselnou hodnotu. Zkontroluj prosím vstupy.`);
+        showModal("Zadal jsi nečíselnou hodnotu. Zkontroluj prosím vstupy.");
         return;
     }
 
@@ -587,50 +673,56 @@ function selectCustomRange() {
     const min = parseInt(minRaw);
     const max = parseInt(maxRaw);
 
-    // 1) limity 0–100
+    // 3) limity 0–100
     if (min < 0 || max < 0) {
-        alert("Hodnoty musí být minimálně 0.");
+        showModal("Hodnoty musí být minimálně 0.");
         return;
     }
 
-	// 2) povoleny jen číslice 0–9
-    if (!/^\d+$/.test(minRaw) || !/^\d+$/.test(maxRaw)) {
-        alert("Používej prosím jen číslice 0–9 bez mezer a dalších znaků.");
-        return;
-    }
-	
     if (min > 100 || max > 100) {
-        alert("Maximální povolená hodnota je 100.");
+        showModal("Maximální povolená hodnota je 100.");
         return;
     }
 
-    // 2) logika rozsahu
+    // 4) logika rozsahu
     if (min > max) {
-        alert(`Hodnota ${min} je větší než ${max}. Oprav to prosím.`);
+        showModal(`Hodnota <b>${min}</b> je větší než <b>${max}</b>. Oprav to prosím.`);
         return;
     }
 
-    // 3) speciální případ: min == max
+    // 5) speciální případ: min == max
     if (min === max) {
-        alert(`Hodnoty jsou stejné (${min}). Rozsah musí být alespoň 7. Zadej například ${min} až ${min + 7}.`);
+        showModal(`Hodnoty jsou stejné (<b>${min}</b>).<br>
+        Rozsah musí být alespoň 7.<br>
+        Zadej například <b>${min}</b> až <b>${min + 7}</b>.`);
         return;
     }
-	// 4) minimální šířka rozsahu = 7
-	const needed = min + 7;
 
-	// speciální případ: doporučená hodnota přesahuje limit
-	if (needed > 100) {
-    alert(`Z hodnot ${min} a ${max} už nejde vytvořit smysluplný rozsah.
-Maximální povolená hodnota je 100, takže minimální rozdíl 7 nelze dodržet.
-Zadej prosím menší minimum nebo sniž maximum.`);
-    return;
-}
+    // 6) minimální šířka rozsahu = 7
+    const needed = min + 7;
 
-	// běžná kontrola
-	if ((max - min) < 7) {
-    alert(`Hodnota ${max} je příliš blízko ${min}. Zadej minimálně ${needed}, aby to dávalo smysl.`);
-    return;
-}
+    // speciální případ: doporučená hodnota přesahuje limit
+    if (needed > 100) {
+        showModal(`Z hodnot <b>${min}</b> a <b>${max}</b> už nejde vytvořit smysluplný rozsah.<br>
+        Maximální povolená hodnota je 100, takže minimální rozdíl 7 nelze dodržet.<br>
+        Zadej prosím menší minimum nebo sniž maximum.`);
+        return;
+    }
+
+    // běžná kontrola
+    if ((max - min) < 7) {
+        showModal(`Hodnota <b>${max}</b> je příliš blízko <b>${min}</b>.<br>
+        Zadej minimálně <b>${needed}</b>, aby to dávalo smysl.`);
+        return;
+    }
+
+    // 7) OK → uložit
+    rangeMin = min;
+    rangeMax = max;
+
+    // 8) přechod na další krok
+    document.getElementById("step1").style.display = "none";
+    document.getElementById("step2").style.display = "block";
    
     // 5) uložení
     selectedMin = min;
@@ -769,13 +861,13 @@ function selectCustomTime() {
 
     // 1) prázdný vstup
     if (raw === "") {
-        alert("Zadej čas v sekundách.");
+        showModal("Zadej čas v sekundách.");
         return;
     }
-	
+
     // 2) nečíselné hodnoty
     if (isNaN(raw)) {
-        alert(`Hodnota "${raw}" není číslo. Zadej prosím platný počet sekund.`);
+        showModal(`Hodnota <b>${raw}</b> není číslo.<br>Zadej prosím platný počet sekund.`);
         return;
     }
 
@@ -784,13 +876,13 @@ function selectCustomTime() {
 
     // 4) minimální čas
     if (t < 15) {
-        alert(`Čas ${t} sekund je příliš krátký. Minimální povolený čas je 15 sekund.`);
+        showModal(`Čas <b>${t} sekund</b> je příliš krátký.<br>Minimální povolený čas je <b>15 sekund</b>.`);
         return;
     }
 
     // 5) maximální čas
     if (t > 300) {
-        alert("⚠️ 5 minut je maximum. Zadej prosím čas do 300 sekund.");
+        showModal("⚠️ Maximální čas je <b>300 sekund</b> (5 minut).");
         return;
     }
 
