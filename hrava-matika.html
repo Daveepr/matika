@@ -185,7 +185,7 @@ input:focus { border-color: #4aa8ff; box-shadow: 0 0 0 4px rgba(74,168,255,0.16)
     border-radius: 8px;
     display: block;
     touch-action: none;
-    cursor: url("../krida.svg") 20 8, crosshair;
+    cursor: crosshair;
     box-shadow: inset 0 0 0 3px rgba(255,255,255,0.07), 0 12px 30px rgba(0,0,0,0.22);
 }
 .actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
@@ -262,14 +262,7 @@ input:focus { border-color: #4aa8ff; box-shadow: 0 0 0 4px rgba(74,168,255,0.16)
 .modal-actions { padding: 0 18px 18px; }
 
 #chalkCursor {
-    position: fixed;
-    width: 30px;
-    height: 30px;
-    pointer-events: none;
-    background: url("../krida.svg") center/contain no-repeat;
-    transform: translate(-50%, -50%);
-    opacity: 0;
-    z-index: 30;
+    display: none;
 }
 
 @media (max-width: 900px) {
@@ -330,7 +323,7 @@ input:focus { border-color: #4aa8ff; box-shadow: 0 0 0 4px rgba(74,168,255,0.16)
         <div class="step-head">
             <div class="step-kicker">2 / 3</div>
             <h2>Kolik příkladů?</h2>
-            <p class="info">Hra skončí po vybraném počtu příkladů. Odpovědi budeš psát křídou na tabuli.</p>
+            <p class="info">Hra skončí po vybraném počtu příkladů. Odpovědi budeš psát prstem nebo myší na tabuli.</p>
         </div>
         <div class="step-grid">
             <button class="btn" onclick="selectCount(5)">5 příkladů</button>
@@ -422,7 +415,7 @@ const teacherMessages = {
     start: [
         "Jdeme na to. Nejdřív si příklad přečti, pak napiš výsledek.",
         "Tabule je připravená. Piš velké číslice a klidně pomalu.",
-        "Dneska procvičíme hlavu i ruku s křídou."
+        "Dneska procvičíme hlavu i ruku při psaní na tabuli."
     ],
     clear: [
         "Tabule je čistá, můžeš to napsat znovu.",
@@ -457,6 +450,7 @@ let wrongCount = 0;
 let streak = 0;
 let drawing = false;
 let pendingCheck = null;
+let ocrWorkerPromise = null;
 
 const canvas = document.getElementById("board");
 const ctx = canvas.getContext("2d");
@@ -492,13 +486,61 @@ function selectRange(min, max) {
 function selectCustomRange() {
     const minRaw = document.getElementById("rangeMin").value.trim();
     const maxRaw = document.getElementById("rangeMax").value.trim();
-    if (minRaw === "" || maxRaw === "") return showModal("Vyplň prosím obě hodnoty rozsahu.");
-    if (!/^\d+$/.test(minRaw) || !/^\d+$/.test(maxRaw)) return showModal("Používej jen číslice 0-9.");
+
+    if (minRaw === "" || maxRaw === "") {
+        showModal("Hodnoty nesmí být prázdné.");
+        return;
+    }
+
+    if (!/^\d+$/.test(minRaw) || !/^\d+$/.test(maxRaw)) {
+        showModal("Používej prosím jen číslice 0-9 bez mezer a dalších znaků.");
+        return;
+    }
+
+    if (isNaN(minRaw) || isNaN(maxRaw)) {
+        showModal("Zadal jsi nečíselnou hodnotu. Zkontroluj prosím vstupy.");
+        return;
+    }
+
     const min = parseInt(minRaw, 10);
     const max = parseInt(maxRaw, 10);
-    if (min < 0 || max > 100) return showModal("Rozsah musí být od 0 do 100.");
-    if (min >= max) return showModal("Hodnota Od musí být menší než hodnota Do.");
-    if (max - min < 7) return showModal("Rozsah musí mít alespoň 7 čísel, aby šly tvořit různé příklady.");
+
+    if (min < 0 || max < 0) {
+        showModal("Hodnoty musí být minimálně 0.");
+        return;
+    }
+
+    if (min > 100 || max > 100) {
+        showModal("Maximální povolená hodnota je 100.");
+        return;
+    }
+
+    if (min > max) {
+        showModal(`Hodnota <b>${min}</b> je větší než <b>${max}</b>. Oprav to prosím.`);
+        return;
+    }
+
+    if (min === max) {
+        showModal(`Hodnoty jsou stejné (<b>${min}</b>).<br>
+        Rozsah musí být alespoň 7.<br>
+        Zadej například <b>${min}</b> až <b>${min + 7}</b>.`);
+        return;
+    }
+
+    const needed = min + 7;
+    if (needed > 100) {
+        showModal(`Z hodnot <b>${min}</b> a <b>${max}</b> už nejde vytvořit smysluplný rozsah.<br>
+        Maximální povolená hodnota je 100, takže minimální rozdíl 7 nelze dodržet.<br>
+        Zadej prosím menší minimum nebo sniž maximum.`);
+        return;
+    }
+
+    if ((max - min) < 7) {
+        showModal(`Hodnota <b>${max}</b> je příliš blízko <b>${min}</b>.<br>
+        Zadej minimálně <b>${needed}</b>, aby to dávalo smysl.`);
+        return;
+    }
+
     selectedMin = min;
     selectedMax = max;
     showStep("step2");
@@ -641,6 +683,7 @@ function startGame() {
     requestAnimationFrame(() => {
         initCanvasSize();
         generateTask();
+        getOcrWorker().catch(() => {});
     });
 }
 
@@ -650,6 +693,16 @@ function normalizeOcrText(text) {
 }
 
 function createOcrCanvas() {
+    const bounds = findStrokeBounds();
+    return bounds ? createOcrCanvasFromBounds(bounds) : null;
+}
+
+function createSoftOcrCanvas() {
+    const bounds = findStrokeBounds();
+    return bounds ? createOcrCanvasFromBounds(bounds, { soft: true }) : null;
+}
+
+function findStrokeBounds() {
     const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const data = image.data;
     let minX = canvas.width;
@@ -673,12 +726,15 @@ function createOcrCanvas() {
     }
 
     if (!hasStroke) return null;
+    return { minX, minY, maxX, maxY };
+}
 
+function createOcrCanvasFromBounds(bounds, options = {}) {
     const padding = Math.round(Math.max(canvas.width, canvas.height) * 0.04);
-    minX = Math.max(0, minX - padding);
-    minY = Math.max(0, minY - padding);
-    maxX = Math.min(canvas.width - 1, maxX + padding);
-    maxY = Math.min(canvas.height - 1, maxY + padding);
+    const minX = Math.max(0, bounds.minX - padding);
+    const minY = Math.max(0, bounds.minY - padding);
+    const maxX = Math.min(canvas.width - 1, bounds.maxX + padding);
+    const maxY = Math.min(canvas.height - 1, bounds.maxY + padding);
 
     const cropWidth = maxX - minX + 1;
     const cropHeight = maxY - minY + 1;
@@ -691,10 +747,17 @@ function createOcrCanvas() {
     const cropImage = cropCtx.getImageData(0, 0, cropWidth, cropHeight);
     for (let i = 0; i < cropImage.data.length; i += 4) {
         const brightness = cropImage.data[i] + cropImage.data[i + 1] + cropImage.data[i + 2];
-        const ink = brightness > 260 ? 0 : 255;
-        cropImage.data[i] = ink;
-        cropImage.data[i + 1] = ink;
-        cropImage.data[i + 2] = ink;
+        if (options.soft) {
+            const ink = Math.max(0, 255 - Math.round((brightness - 45) * 0.7));
+            cropImage.data[i] = ink;
+            cropImage.data[i + 1] = ink;
+            cropImage.data[i + 2] = ink;
+        } else {
+            const ink = brightness > 260 ? 0 : 255;
+            cropImage.data[i] = ink;
+            cropImage.data[i + 1] = ink;
+            cropImage.data[i + 2] = ink;
+        }
         cropImage.data[i + 3] = 255;
     }
     cropCtx.putImageData(cropImage, 0, 0);
@@ -711,7 +774,7 @@ function createOcrCanvas() {
     const outCtx = output.getContext("2d");
     outCtx.fillStyle = "#ffffff";
     outCtx.fillRect(0, 0, output.width, output.height);
-    outCtx.imageSmoothingEnabled = false;
+    outCtx.imageSmoothingEnabled = !!options.soft;
     outCtx.drawImage(
         crop,
         margin + Math.round((side - targetWidth) / 2),
@@ -720,40 +783,173 @@ function createOcrCanvas() {
         targetHeight
     );
 
-    const prepared = outCtx.getImageData(0, 0, output.width, output.height);
-    for (let i = 0; i < prepared.data.length; i += 4) {
-        prepared.data[i] = prepared.data[i] < 128 ? 0 : 255;
-        prepared.data[i + 1] = prepared.data[i + 1] < 128 ? 0 : 255;
-        prepared.data[i + 2] = prepared.data[i + 2] < 128 ? 0 : 255;
-        prepared.data[i + 3] = 255;
+    if (!options.soft) {
+        const prepared = outCtx.getImageData(0, 0, output.width, output.height);
+        for (let i = 0; i < prepared.data.length; i += 4) {
+            prepared.data[i] = prepared.data[i] < 128 ? 0 : 255;
+            prepared.data[i + 1] = prepared.data[i + 1] < 128 ? 0 : 255;
+            prepared.data[i + 2] = prepared.data[i + 2] < 128 ? 0 : 255;
+            prepared.data[i + 3] = 255;
+        }
+        outCtx.putImageData(prepared, 0, 0);
     }
-    outCtx.putImageData(prepared, 0, 0);
 
     return output;
+}
+
+function findStrokeComponents() {
+    const image = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = image.data;
+    const width = canvas.width;
+    const height = canvas.height;
+    const visited = new Uint8Array(width * height);
+    const components = [];
+    const minPixels = Math.max(40, Math.round(width * height * 0.00008));
+
+    function isStroke(index) {
+        const i = index * 4;
+        return data[i] + data[i + 1] + data[i + 2] > 180;
+    }
+
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const start = y * width + x;
+            if (visited[start] || !isStroke(start)) continue;
+
+            const stack = [start];
+            visited[start] = 1;
+            let minX = x;
+            let maxX = x;
+            let minY = y;
+            let maxY = y;
+            let count = 0;
+
+            while (stack.length) {
+                const current = stack.pop();
+                count++;
+                const cx = current % width;
+                const cy = Math.floor(current / width);
+                minX = Math.min(minX, cx);
+                maxX = Math.max(maxX, cx);
+                minY = Math.min(minY, cy);
+                maxY = Math.max(maxY, cy);
+
+                const neighbors = [
+                    current - 1,
+                    current + 1,
+                    current - width,
+                    current + width,
+                    current - width - 1,
+                    current - width + 1,
+                    current + width - 1,
+                    current + width + 1
+                ];
+
+                for (const next of neighbors) {
+                    if (next < 0 || next >= visited.length || visited[next]) continue;
+                    const nx = next % width;
+                    const ny = Math.floor(next / width);
+                    if (Math.abs(nx - cx) > 1 || Math.abs(ny - cy) > 1) continue;
+                    if (!isStroke(next)) continue;
+                    visited[next] = 1;
+                    stack.push(next);
+                }
+            }
+
+            if (count >= minPixels) {
+                components.push({ minX, minY, maxX, maxY, count });
+            }
+        }
+    }
+
+    return components.sort((a, b) => a.minX - b.minX);
+}
+
+function createNegativeNumberOcrParts() {
+    const components = findStrokeComponents();
+    if (components.length < 2) return null;
+
+    const first = components[0];
+    const firstWidth = first.maxX - first.minX + 1;
+    const firstHeight = first.maxY - first.minY + 1;
+    const looksLikeMinus = firstWidth > firstHeight * 2.2 && firstHeight < canvas.height * 0.18;
+    if (!looksLikeMinus) return null;
+
+    const rest = components.slice(1);
+    const bounds = {
+        minX: Math.min(...rest.map(item => item.minX)),
+        minY: Math.min(...rest.map(item => item.minY)),
+        maxX: Math.max(...rest.map(item => item.maxX)),
+        maxY: Math.max(...rest.map(item => item.maxY))
+    };
+
+    return {
+        sign: "-",
+        numberCanvas: createOcrCanvasFromBounds(bounds)
+    };
 }
 
 async function readBoard() {
     const preparedCanvas = createOcrCanvas();
     if (!preparedCanvas) return "";
+    const softCanvas = createSoftOcrCanvas();
 
-    const lineOptions = {
-        tessedit_char_whitelist: "0123456789-",
-        tessedit_pageseg_mode: "7"
-    };
-    const singleCharOptions = {
-        tessedit_char_whitelist: "0123456789-",
-        tessedit_pageseg_mode: "10"
-    };
-    const preparedResult = await Tesseract.recognize(preparedCanvas, "eng", lineOptions);
-    const preparedText = normalizeOcrText(preparedResult.data.text || "");
+    const negativeParts = createNegativeNumberOcrParts();
+    if (negativeParts) {
+        const singleDigitText = await recognizeCanvas(negativeParts.numberCanvas, "10");
+        if (singleDigitText) return negativeParts.sign + singleDigitText.replace("-", "");
+
+        const numberText = await recognizeCanvas(negativeParts.numberCanvas, "7");
+        if (numberText) return negativeParts.sign + numberText.replace("-", "");
+    }
+
+    const components = findStrokeComponents();
+    if (components.length === 1) {
+        const singleText = await recognizeCanvas(preparedCanvas, "10");
+        if (singleText) return singleText;
+
+        if (softCanvas) {
+            const softSingleText = await recognizeCanvas(softCanvas, "10");
+            if (softSingleText) return softSingleText;
+        }
+    }
+
+    const preparedText = await recognizeCanvas(preparedCanvas, "7");
     if (preparedText) return preparedText;
 
-    const singleCharResult = await Tesseract.recognize(preparedCanvas, "eng", singleCharOptions);
-    const singleCharText = normalizeOcrText(singleCharResult.data.text || "");
-    if (singleCharText) return singleCharText;
+    if (softCanvas) {
+        const softText = await recognizeCanvas(softCanvas, "7");
+        if (softText) return softText;
+    }
 
-    const originalResult = await Tesseract.recognize(canvas, "eng", lineOptions);
-    return normalizeOcrText(originalResult.data.text || "");
+    return recognizeCanvas(preparedCanvas, "10");
+}
+
+async function getOcrWorker() {
+    if (!ocrWorkerPromise) {
+        ocrWorkerPromise = (async () => {
+            const worker = await Tesseract.createWorker("eng");
+            await worker.setParameters({
+                tessedit_char_whitelist: "0123456789-",
+                tessedit_pageseg_mode: "7"
+            });
+            return worker;
+        })().catch(error => {
+            ocrWorkerPromise = null;
+            throw error;
+        });
+    }
+    return ocrWorkerPromise;
+}
+
+async function recognizeCanvas(targetCanvas, pageSegMode) {
+    const worker = await getOcrWorker();
+    await worker.setParameters({
+        tessedit_char_whitelist: "0123456789-",
+        tessedit_pageseg_mode: pageSegMode
+    });
+    const result = await worker.recognize(targetCanvas);
+    return normalizeOcrText(result.data.text || "");
 }
 
 async function checkBoard() {

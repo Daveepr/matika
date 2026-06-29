@@ -224,10 +224,37 @@ h2 { font-size: clamp(16px, 2vw, 26px); }
     margin-top: 15px;
     text-align: left;
     font-size: clamp(13px, 1.3vw, 18px);
-    padding-left: 10px;
+    padding-left: 0;
 }
 .wrong-item {
-    margin-bottom: 8px;
+    margin-bottom: 10px;
+    padding: 12px;
+    background: #fff6f4;
+    border: 2px solid rgba(231,76,60,0.18);
+    border-radius: 12px;
+}
+.wrong-line {
+    margin: 5px 0;
+    line-height: 1.45;
+}
+.wrong-label {
+    display: inline-block;
+    min-width: 150px;
+    font-weight: 700;
+}
+.summary-message {
+    margin: 15px auto 0;
+    padding: 14px 18px;
+    border-radius: 18px;
+    max-width: 90%;
+    background: #fff7c2;
+    text-align: center;
+    font-size: clamp(15px, 1.5vw, 22px);
+    font-weight: 700;
+}
+.toggle-btn {
+    margin-top: 15px;
+    background: #ffcc00;
 }
 
 /* OPERAČNÍ STATISTIKY */
@@ -481,7 +508,10 @@ h2 { font-size: clamp(16px, 2vw, 26px); }
         <div id="opStatsContainer"></div>
     </div>
 
-    <div class="wrong-list" id="wrongList"></div>
+    <div id="motivationText" class="summary-message"></div>
+
+    <button id="btnWrong" class="btn toggle-btn" onclick="toggleWrong()" style="display:none;">Chybné příklady</button>
+    <div class="wrong-list" id="wrongList" style="display:none;"></div>
 
     <div style="text-align:center; margin-top:15px;">
         <button class="btn" onclick="location.reload()">Zkusit znovu 🔁</button>
@@ -503,6 +533,22 @@ let opStats = {
     "*": {correct:0, wrong:0},
     "/": {correct:0, wrong:0}
 };
+
+const motivationHigh = [
+    "Výborně. Tady už znaménka poslouchala skoro na slovo.",
+    "Skvělá práce. Je vidět, že v příkladech hledáš souvislosti.",
+    "Parádní výkon. Tohle bylo přesné a soustředěné počítání."
+];
+const motivationMid = [
+    "Dobrá práce. Některé příklady ještě chtějí klid, ale směr je správný.",
+    "Hezky se posouváš. Zkus si projít chyby a příště to bude zase jistější.",
+    "Solidní výkon. Stačí doladit pár znamének a bude to ještě lepší."
+];
+const motivationLow = [
+    "Nevadí, doplňování znamének je těžší než obyčejné počítání. Zkus menší rozsah a půjde to líp.",
+    "Každá chyba ukazuje, co procvičit dál. Dej si kratší sérii a pomalu na to.",
+    "Tohle byl trénink logiky. Vrať se k lehčí obtížnosti a nech si na příklady víc času."
+];
 
 function showModal(msg) {
     document.getElementById("modalMessage").innerHTML = msg;
@@ -836,6 +882,7 @@ function checkCurrent() {
     results.push({
         nums,
         userOps,
+        correctOps: currentExample.ops.slice(),
         correctResult,
         allCorrect: isCorrect
     });
@@ -851,6 +898,7 @@ function skipCurrent() {
     results.push({
         nums,
         userOps: [],
+        correctOps: currentExample.ops.slice(),
         correctResult,
         allCorrect: false,
         skipped: true
@@ -876,6 +924,7 @@ function finishGame() {
     document.getElementById("sumCorrect").textContent = correct;
     document.getElementById("sumWrong").textContent = wrong;
     document.getElementById("sumPercent").textContent = percent + " %";
+    document.getElementById("motivationText").textContent = getMotivationMessage(percent);
 
     const opStatsContainer = document.getElementById("opStatsContainer");
     opStatsContainer.innerHTML = "";
@@ -899,34 +948,45 @@ function finishGame() {
     });
 
     const wrongList = document.getElementById("wrongList");
+    const btnWrong = document.getElementById("btnWrong");
     wrongList.innerHTML = "";
+    wrongList.style.display = "none";
     const wrongOnly = results.filter(r => !r.allCorrect);
 
     if (wrongOnly.length === 0) {
-        wrongList.textContent = "Nemáš žádné chybné příklady. Skvělá práce! 🎉";
+        btnWrong.style.display = "none";
         return;
     }
 
-    const title = document.createElement("div");
-    title.className = "result-title";
-    title.style.fontSize = "clamp(16px,1.8vw,22px)";
-    title.textContent = "Chybné příklady:";
-    wrongList.appendChild(title);
+    btnWrong.style.display = "block";
+    btnWrong.textContent = `Chybné příklady (${wrongOnly.length})`;
 
     wrongOnly.forEach(r => {
         const div = document.createElement("div");
         div.className = "wrong-item";
 
-        const correctExpr = buildExpressionString(r.nums, r.userOps.length ? r.userOps : null, r.correctResult);
         const userExpr = r.userOps.length
             ? buildExpressionString(r.nums, r.userOps, evaluateExpression(r.nums, r.userOps))
             : "(přeskočeno)";
+        const correctExpr = buildExpressionString(r.nums, r.correctOps, r.correctResult);
 
         div.innerHTML =
-            `<span class="bad">Správně (výsledek):</span> ${r.correctResult}<br>` +
-            `<span class="good">Tvoje znaménka:</span> ${userExpr}`;
+            `<div class="wrong-line"><span class="wrong-label bad">Tvoje řešení:</span> ${userExpr}</div>` +
+            `<div class="wrong-line"><span class="wrong-label good">Správná varianta:</span> ${correctExpr}</div>`;
         wrongList.appendChild(div);
     });
+}
+function toggleWrong() {
+    const list = document.getElementById("wrongList");
+    list.style.display = list.style.display === "none" ? "block" : "none";
+}
+function getMotivationMessage(percent) {
+    if (percent >= 80) return randomFrom(motivationHigh);
+    if (percent >= 40) return randomFrom(motivationMid);
+    return randomFrom(motivationLow);
+}
+function randomFrom(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
 }
 function buildExpressionString(nums, ops, result) {
     let s = "";
