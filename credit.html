@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hravá Matika – Titulky</title>
+
+<style>
+    body {
+        margin: 0;
+        background: #000;
+        color: #fff;
+        font-family: Arial, sans-serif;
+        overflow: hidden;
+    }
+
+    #credits {
+        position: absolute;
+        bottom: -100%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90%;
+        text-align: center;
+        animation: roll 22s linear forwards;
+        animation-play-state: running;
+    }
+
+    .title {
+        font-size: 2.6rem;
+        margin: 10px 0;
+        font-weight: bold;
+    }
+
+    .section {
+        font-size: 1.4rem;
+        margin-top: 40px;
+        opacity: .9;
+    }
+
+    .name {
+        font-size: 1.2rem;
+        margin: 6px 0;
+        opacity: .85;
+    }
+
+    .dots {
+        margin: 25px 0;
+        font-size: 1.4rem;
+        letter-spacing: 6px;
+    }
+
+    .dots span {
+        color: #ffcc00;
+    }
+    .dots span.alt {
+        color: #66ccff;
+    }
+
+    @keyframes roll {
+        from { bottom: -280%; }
+        to { bottom: 100%; }
+    }
+
+    #skipHint {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.85rem;
+        opacity: 0.55;
+        color: #fff;
+        pointer-events: none;
+        text-shadow: 0 0 6px rgba(0,0,0,.4);
+        transition: opacity .2s ease;
+    }
+
+    .tech-row {
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+        margin-top: 30px;
+    }
+
+    .tech-col {
+        min-width: 140px;
+    }
+
+
+</style>
+</head>
+
+<body>
+
+<div id="credits">
+
+    <div class="title">Hravá</div>
+    <div class="title">Matika</div>
+
+    <div class="dots">
+        <span>●</span><span class="alt">●</span><span>●</span><span class="alt">●</span>
+        <span>●</span><span class="alt">●</span><span>●</span>
+    </div>
+
+    <div class="section">Námět a scénář</div>
+    <div class="name">David Feygl</div>
+
+    <div class="section">Programování (mechanika)</div>
+    <div class="name">Copilot & ChatGPT</div>
+
+    <div class="section">Programování (logika mechaniky)</div>
+    <div class="name">David Feygl</div>
+
+    <div class="section">Texty a Grafické zpracování (interface)</div>
+    <div class="name">David Feygl</div>
+
+    <div class="section">Korepetitor Textu</div>
+    <div class="name">Copilot & ChatGPT</div>
+
+    <div class="section">Testeři</div>
+    <div class="name">David Feygl</div>
+    <div class="name">Copilot & ChatGPT</div>
+    <div class="name">… a ty 😁</div>
+
+    <div class="dots">
+        <span>●</span><span class="alt">●</span><span>●</span><span class="alt">●</span>
+        <span>●</span><span class="alt">●</span><span>●</span>
+    </div>
+
+    <div class="section">Vyrobilo</div>
+    <div class="name">©️ 2026 Daveeho Programy</div>
+    <div class="section">Made in Earth 😊</div>
+
+    <br><br><br>
+
+    <div class="title">Použitá technologie</div>
+
+    <div class="dots">
+        <span>●</span><span class="alt">●</span><span>●</span><span class="alt">●</span>
+        <span>●</span><span class="alt">●</span><span>●</span>
+    </div>
+
+    <div class="section">Tesseract</div>
+    <div class="section">Rozpoznávání psaného textu</div>
+    <div class="name">Původní autoři: Ray Smith a tým z Hewlett‑Packard.</div>
+    <div class="name">Současný hl. vývojář Stefan Weil a Zdenko Podobný.</div>
+    <div class="name">Licence: Apache 2.0 (open‑source), od 2006 podporováno Googlem.</div>
+
+   <div class="tech-row">
+    <div class="tech-col">
+        <div class="section">HTML</div>
+        <div class="name">Autor: Tim Berners‑Lee</div>
+        <div class="name">Rok vzniku: 1991</div>
+        <div class="name">Standard: W3C</div>
+        <div class="name">Popis: Struktura a význam prvků na stránce.</div>
+    </div>
+
+    <div class="tech-col">
+        <div class="section">JavaScript</div>
+        <div class="name">Autor: Brendan Eich</div>
+        <div class="name">Rok vzniku: 1995</div>
+        <div class="name">Standard: ECMA (ECMAScript)</div>
+        <div class="name">Popis: Logika, interakce a dynamické chování aplikace.</div>
+    </div>
+   </div>
+
+<BR>
+
+<div class="title">Projekt žije</div>
+<div class="section">GitHub Pages (github.io)</div>
+<div class="name">Provozovatel: GitHub / Microsoft</div>
+<div class="name">Popis: Hosting statických HTML/JS projektů.</div>
+
+</div>
+
+
+
+<div id="skipHint">Klikni, ťukni nebo zmáčkni libovolnou klávesu… (mezerník = pauza)</div>
+
+<script>
+    let paused = false;
+    let elapsed = 0;
+    const duration = 22000;
+    let timer = null;
+
+    const credits = document.getElementById("credits");
+    const hint = document.getElementById("skipHint");
+
+    const skip = () => {
+        clearInterval(timer);
+        window.location.href = "menu.html";
+    };
+
+    const togglePause = () => {
+        paused = !paused;
+        credits.style.animationPlayState = paused ? "paused" : "running";
+        hint.style.opacity = paused ? "0.9" : "0.55";
+    };
+
+    // interval místo timeoutu
+    const startTimer = () => {
+        timer = setInterval(() => {
+            if (!paused) {
+                elapsed += 100;
+                if (elapsed >= duration) skip();
+            }
+        }, 100);
+    };
+
+    startTimer();
+
+    // ovládání
+    window.addEventListener("keydown", (e) => {
+        if (e.code === "Space") {
+            e.preventDefault();
+            togglePause();
+        } else {
+            skip();
+        }
+    });
+
+    window.addEventListener("mousedown", skip);
+    window.addEventListener("touchstart", skip);
+</script>
+
+</body>
+</html>
