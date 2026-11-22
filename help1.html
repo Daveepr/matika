@@ -136,7 +136,7 @@
 <div class="topbar">
     <h1>🧠 Jednodušší rychlá nápověda </h1>
     <button id="audioBtn" class="menu-btn" onclick="toggleAudio()">
-       🔊 Nápověda
+       🔊 Přečíst nápovědu
     </button>
 
     <button class="menu-btn" onclick="location.href='menu.html'">
@@ -153,15 +153,15 @@ function toggleAudio() {
 
     if (audio.paused) {
         audio.play();
-        btn.textContent = '⏸️ Pozastavit';
+        btn.textContent = '⏸️ Pozastavit čtení';
     } else {
         audio.pause();
-        btn.textContent = '🔊 Nápověda';
+        btn.textContent = '🔊 Pokračovat ve čtení';
     }
 }
 
 document.getElementById('napoveda').addEventListener('ended', () => {
-    document.getElementById('audioBtn').textContent = '🔊 Nápověda';
+    document.getElementById('audioBtn').textContent = '🔊 Přečíst nápovědu';
 });
 </script>
 
